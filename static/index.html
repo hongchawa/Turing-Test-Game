@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>图灵测试 / TURING?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #9DBF3C;
+            --primary-hover: #8AAB35;
+            --primary-glow: rgba(157, 191, 60, 0.15);
+            --surface: #FFFFFF;
+            --bg-body: #F5F5F7;
+            --text-primary: #1A1A1A;
+            --text-secondary: #5A5A5A;
+            --text-muted: #8C8C8C;
+            --border-light: #E0E0E0;
+            --border-dark: #C0C0C0;
+            --radius-lg: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+            --error: #C0392B;
+            --warning: #C86400;
+            --success: #2E7D32;
+            --surface-overlay: rgba(0, 0, 0, 0.4);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #7EC8A0;
+                --primary-hover: #6AB88C;
+                --primary-glow: rgba(126, 200, 160, 0.15);
+                --surface: #1E1E2E;
+                --bg-body: #13131F;
+                --text-primary: #E8E8EC;
+                --text-secondary: #9898B0;
+                --text-muted: #686880;
+                --border-light: #2A2A3E;
+                --border-dark: #3A3A50;
+                --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
+                --error: #E05555;
+                --warning: #E39444;
+                --success: #4CAF7A;
+                --surface-overlay: rgba(0, 0, 0, 0.6);
+            }
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html,body { height:100%; overflow:hidden; background:var(--bg-body); }
+        body { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:var(--text-primary); line-height:1.5; -webkit-font-smoothing:antialiased; }
+        .container { height:100%; max-width:680px; margin:0 auto; background:var(--bg-body); display:flex; flex-direction:column; position:relative; }
+        .app-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--bg-body); position:sticky; top:0; z-index:50; border-bottom:1px solid var(--border-light); }
+        .header-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+        .nav-brand { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.2rem; letter-spacing:-0.5px; color:var(--text-primary); display:flex; align-items:center; gap:8px; flex-shrink:0; }
+        .nav-brand span { color:var(--primary); background:#1A1A30; padding:2px 6px; border-radius:4px; font-size:0.8rem; }
+        .header-stats { display:flex; align-items:center; gap:8px; font-size:0.7rem; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+        .header-stats .stat-dot { display:inline-block; width:3px; height:3px; background:var(--text-muted); border-radius:50%; }
+        #pingDisplay.ping-good { color:var(--primary); }
+        #pingDisplay.ping-medium { color:#FBBC05; }
+        #pingDisplay.ping-bad { color:#D93838; }
+        .nav-actions { display:flex; align-items:center; gap:16px; flex-shrink:0; }
+        .admin-trigger { color:var(--text-secondary); font-size:0.85rem; font-weight:500; cursor:pointer; user-select:none; transition:color 0.2s; }
+        .admin-trigger:hover { color:var(--text-primary); }
+
+        .page { display:none !important; flex-direction:column; flex:1; overflow-y:auto; padding:0 20px 20px; min-height:0; }
+        .page.active { display:flex !important; animation:pageIn 0.3s ease-out; }
+        @keyframes pageIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+        .recovery-code { font-family:'JetBrains Mono',monospace; letter-spacing:2px; cursor:pointer; transition:all 0.15s; color:var(--primary); }
+        .recovery-code:hover { opacity:0.8; }
+        .recovery-input-row { display:flex; gap:8px; align-items:center; margin-top:8px; padding-top:8px; border-top:1px solid var(--border-light); }
+        .recovery-input-row input { flex:1; padding:6px 10px; border:1px solid var(--border-light); border-radius:6px; background:var(--bg-body); color:var(--text-primary); outline:none; font-size:0.85rem; font-family:monospace; }
+        .recovery-input-row input:focus { border-color:var(--primary); }
+        .recovery-input-row button { padding:6px 12px; border:none; border-radius:6px; background:var(--primary); color:#000; font-weight:600; cursor:pointer; font-size:0.8rem; transition:background 0.15s,transform 0.15s; }
+        .recovery-input-row button:hover { background:var(--primary-hover); transform:scale(1.05); }
+        .recovery-display-row { display:none; margin-top:8px; padding-top:8px; border-top:1px solid var(--border-light); }
+        .recovery-label { font-size:0.65rem; color:var(--text-muted); margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+        .recovery-code-value { font-family:'JetBrains Mono',monospace; font-size:1.1rem; font-weight:700; letter-spacing:3px; cursor:pointer; color:var(--primary); transition:all 0.15s; display:inline-flex; align-items:center; gap:8px; }
+        .recovery-code-value:hover { opacity:0.8; }
+        .recovery-code-value .copy-hint { font-size:0.6rem; color:var(--text-muted); font-weight:400; letter-spacing:0; }
+        .recovery-toggle-link { font-size:0.7rem; color:var(--text-muted); cursor:pointer; transition:color 0.15s; }
+        .recovery-toggle-link:hover { color:var(--primary); }
+        .change-nick-row { display:flex; align-items:center; gap:6px; margin-top:8px; }
+        .change-nick-link { font-size:0.7rem; color:var(--text-muted); cursor:pointer; transition:color 0.15s; }
+        .change-nick-link:hover { color:var(--primary); }
+        .change-nick-panel { margin-top:8px; display:none; }
+        .change-nick-panel input { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; font-size:0.8rem; color:var(--text-primary); width:140px; outline:none; transition:border-color 0.15s; }
+        .change-nick-panel input:focus { border-color:var(--primary); }
+        .change-nick-panel button { background:var(--primary); color:#fff; border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.75rem; cursor:pointer; font-weight:600; transition:opacity 0.15s; }
+        .change-nick-panel button:hover { opacity:0.85; }
+        .change-nick-panel button:disabled { opacity:0.4; cursor:not-allowed; }
+        .change-nick-hint { font-size:0.6rem; color:var(--text-muted); margin-top:4px; }
+
+        #homePage { position:relative; padding-top:0; }
+        .home-bg-number { position:absolute; right:0; top:10px; font-size:7rem; font-weight:900; color:var(--text-primary); letter-spacing:-4px; user-select:none; z-index:-1; pointer-events:none; opacity:0.12; }
+        .home-intro { position:relative; z-index:1; margin-bottom:24px; }
+        .home-intro .sub { font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-secondary); letter-spacing:1.2px; text-transform:uppercase; font-weight:600; }
+        .home-intro h1 { font-size:2.2rem; font-weight:700; letter-spacing:-1px; margin-top:4px; color:var(--text-primary); }
+        .identity-card { border-left:4px solid var(--primary); border-radius:var(--radius-lg); background:var(--surface); padding:16px 20px; margin-bottom:24px; border-top:1px solid var(--border-light); border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light); }
+        .identity-header { font-size:0.65rem; font-weight:600; color:var(--text-muted); letter-spacing:0.5px; display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+        .identity-header span.green-dot { display:inline-block; width:6px; height:6px; background:var(--primary); border-radius:50%; }
+        .identity-title { font-size:1.4rem; font-weight:700; margin-bottom:2px; }
+        .input-section { margin-bottom:24px; }
+        .input-wrapper { border-bottom:2px solid var(--border-dark); position:relative; padding-bottom:4px; background:transparent; display:flex; align-items:center; gap:12px; }
+        .input-wrapper input { flex:1; border:none; outline:none; background:transparent; font-family:'Inter',sans-serif; font-size:1.1rem; font-weight:500; color:var(--text-primary); padding:6px 0; }
+        .input-wrapper input::placeholder { color:var(--text-muted); font-weight:400; }
+        .input-progress { position:absolute; bottom:-2px; left:0; height:2px; background:var(--primary); width:0%; transition:width 0.2s ease; z-index:1; }
+        .input-counter { font-size:0.75rem; color:var(--text-muted); margin-top:6px; text-align:right; }
+        .save-btn { background:var(--primary); border:none; border-radius:4px; padding:4px 12px; font-weight:600; font-size:0.9rem; color:#000; cursor:pointer; flex-shrink:0; height:32px; transition:background 0.2s; z-index:5; }
+        .save-btn:hover { background:var(--primary-hover); }
+        .big-action-btn { width:100%; background:var(--primary); color:var(--text-primary); border:none; border-radius:var(--radius-sm); padding:16px 24px; font-size:1.1rem; font-weight:700; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background 0.2s; margin-bottom:12px; position:relative; z-index:1; }
+        .big-action-btn:hover { background:var(--primary-hover); }
+        .big-action-btn svg { width:20px; height:20px; stroke-width:2.5; }
+        .home-actions { display:flex; justify-content:center; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+        .home-actions .btn-ghost { padding:8px 16px; border-radius:4px; font-size:0.75rem; cursor:pointer; background:transparent; border:1px solid var(--border-light); color:var(--text-secondary); transition:0.2s; }
+        .home-actions .btn-ghost:hover { border-color:var(--text-secondary); color:var(--text-primary); }
+        .home-actions .btn-primary-ghost { background:var(--primary); border:1px solid var(--primary); color:var(--text-primary); font-weight:600; }
+        .home-actions .btn-primary-ghost:hover { background:var(--primary-hover); }
+        .disclaimer { font-size:0.65rem; color:var(--text-muted); margin:8px 0 16px; line-height:1.4; }
+        .alt-line-hint { font-size:0.7rem; color:var(--text-muted); margin:4px 0 12px; line-height:1.5; text-align:center; }
+        .alt-line-hint a { color:var(--primary); text-decoration:underline; font-weight:500; cursor:pointer; }
+        .alt-line-hint a:hover { color:var(--primary-hover); }
+        .footer-typography { text-align:left; padding-top:12px; border-top:1px solid var(--border-light); }
+        .footer-typography .small-caps { font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:2px; color:var(--text-secondary); margin-bottom:8px; display:block; }
+        .footer-typography .big-text { font-size:clamp(3rem,10vw,4.5rem); font-weight:900; line-height:0.95; letter-spacing:-2px; color:var(--text-primary); }
+        .footer-typography .big-text span { color:var(--primary); background:#1A1A30; display:inline-block; padding:0 4px; }
+        .footer-desc-text { font-size:0.9rem; color:var(--text-secondary); margin-top:10px; line-height:1.6; }
+        .online-status { font-size:0.75rem; color:var(--text-muted); margin-top:8px; }
+
+        #queuePage { align-items:center; justify-content:center; text-align:center; gap:16px; }
+        .queue-spinner { width:40px; height:40px; border:3px solid var(--border-light); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .queue-text { font-weight:700; font-size:1.2rem; margin-top:8px; }
+        .queue-hint { font-size:0.85rem; color:var(--text-secondary); }
+        .btn-ghost { background:transparent; border:none; color:var(--text-secondary); cursor:pointer; padding:8px; font-size:0.85rem; }
+        .btn-ghost:hover { color:var(--text-primary); }
+
+        .exit-btn { width:36px; height:36px; border-radius:50%; background:var(--bg-body); border:1.5px solid var(--border-light); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; color:var(--text-secondary); }
+        .exit-btn:hover { background:rgba(217,56,56,0.15); border-color:var(--error); color:var(--error); }
+        .exit-btn svg { width:16px; height:16px; stroke-width:2.5; }
+
+        #gamePage { padding:0; background:var(--surface); display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
+        .game-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border-light); background:var(--surface); flex-shrink:0; }
+        .game-left-group { display:flex; align-items:center; gap:12px; }
+        .game-opponent-info { display:flex; flex-direction:column; gap:1px; }
+        .game-opponent-name { font-weight:600; font-size:0.95rem; }
+        .game-opponent-status { font-size:0.7rem; color:var(--text-muted); }
+        .timer-bar { padding:6px 12px; text-align:center; font-weight:600; font-size:0.8rem; display:none; background:var(--bg-body); border-bottom:1px solid var(--border-light); flex-shrink:0; }
+        .timer-bar.visible { display:block; }
+        .timer-bar.urgent { color:#D93838; animation:timerFlash 0.5s ease-in-out infinite; }
+        @keyframes timerFlash { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .timer-bar.msg-timeout { background:rgba(217,56,56,0.08); color:#C5221F; }
+        .timer-bar.judge-timeout { background:rgba(251,188,5,0.1); color:#E37400; }
+        .timer-bar.total { background:var(--primary-glow); color:var(--primary); }
+        .chat-messages { flex:1; overflow-y:auto; padding:16px; min-height:0; display:flex; flex-direction:column; gap:10px; background:var(--bg-body); }
+        .chat-message { max-width:80%; animation:messageIn 0.25s ease-out; }
+        @keyframes messageIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+        .chat-message.self { align-self:flex-end; }
+        .chat-message.opponent { align-self:flex-start; }
+        .chat-message.sticker-only { background:transparent; max-width:160px; padding:0; margin-bottom:4px; }
+        .chat-message-bubble { padding:10px 14px; border-radius:16px; font-size:0.95rem; line-height:1.5; word-break:break-word; }
+        .chat-message.self .chat-message-bubble { background:var(--primary); color:#111111; border-bottom-right-radius:4px; }
+        .chat-message.opponent .chat-message-bubble { background:var(--surface); color:var(--text-primary); border-bottom-left-radius:4px; border:1px solid var(--border-light); }
+        .chat-message-sender { font-size:0.7rem; color:var(--text-muted); margin:0 4px 4px; font-weight:500; }
+        .chat-message.self .chat-message-sender { text-align:right; }
+        .chat-sticker { max-width:120px; max-height:120px; border-radius:12px; display:block; box-shadow:var(--shadow-sm); background:var(--surface); }
+        .chat-message.self .chat-sticker { margin-left:auto; }
+        .typing-indicator { align-self:flex-start; display:none; padding:10px 14px; background:var(--surface); border-radius:16px; border-bottom-left-radius:4px; border:1px solid var(--border-light); gap:4px; flex-shrink:0; }
+        .typing-indicator.visible { display:flex; }
+        .typing-indicator span { width:5px; height:5px; background:var(--text-muted); border-radius:50%; animation:typingDot 1.4s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay:0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay:0.4s; }
+        @keyframes typingDot { 0%,60%,100%{opacity:0.3;transform:scale(0.8)} 30%{opacity:1;transform:scale(1)} }
+
+        .chat-input-area { padding:10px 16px; border-top:1px solid var(--border-light); background:var(--surface); display:flex; gap:0; flex-shrink:0; align-items:center; }
+        .input-wrapper-sticker { position:relative; flex:1; display:flex; align-items:center; }
+        .sticker-btn-css { position:absolute; left:4px; width:32px; height:32px; border:none; background:var(--surface); border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; transition:background 0.2s; }
+        .sticker-btn-css:hover { background:var(--bg-body); }
+        .sticker-btn-css svg { width:18px; height:18px; color:var(--text-muted); }
+        .input-wrapper-sticker input { flex:1; height:44px; border:1px solid transparent; border-radius:24px; padding:0 16px 0 44px; background:var(--bg-body); font-size:0.95rem; outline:none; width:100%; }
+        .input-wrapper-sticker input:focus { border-color:var(--primary); }
+        .chat-input-area button.send { margin-left:10px; height:44px; border-radius:24px; border:none; background:var(--primary); font-weight:600; padding:0 20px; cursor:pointer; transition:0.2s; flex-shrink:0; font-family:'Inter',sans-serif; font-size:0.95rem; color:var(--text-primary); }
+        .chat-input-area button.send:hover { background:var(--primary-hover); }
+
+        .judge-btn-container { padding:12px 16px; background:var(--surface); border-top:1px solid var(--border-light); display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
+        .judge-btn { width:100%; padding:12px; font-weight:700; font-size:1rem; border-radius:var(--radius-sm); border:none; background:var(--bg-body); color:var(--text-muted); cursor:not-allowed; transition:all 0.2s; }
+        .judge-btn.enabled { background:var(--primary); color:var(--text-primary); cursor:pointer; }
+        .judge-btn.enabled:hover { background:var(--primary-hover); }
+        .judge-hint { font-size:0.7rem; color:var(--text-muted); }
+
+        .sticker-popup { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); width:340px; max-height:320px; background:var(--surface); border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.2); padding:12px; display:none; z-index:400; overflow-y:auto; flex-wrap:wrap; gap:6px; }
+        .sticker-popup.active { display:flex; }
+        .sticker-popup img { width:72px; height:72px; object-fit:contain; border-radius:10px; cursor:pointer; border:2px solid transparent; transition:all 0.15s; background:var(--bg-body); }
+        .sticker-popup img:hover { border-color:var(--primary); transform:scale(1.08); }
+        .sticker-popup .sticker-desc { font-size:0.6rem; color:var(--text-muted); text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:72px; }
+
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(8px); z-index:300; align-items:center; justify-content:center; padding:24px; }
+        .modal-overlay.visible { display:flex; }
+        .modal { background:var(--surface); border-radius:var(--radius-lg); padding:32px 28px; max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.08); animation:modalIn 0.25s ease-out; position:relative; }
+        @keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(8px);} to{opacity:1;transform:scale(1) translateY(0);} }
+        .modal h2 { font-size:1.6rem; font-weight:700; margin-bottom:6px; }
+        .modal p { color:var(--text-secondary); font-size:0.95rem; margin-bottom:20px; }
+        .modal-actions { display:flex; gap:12px; }
+        .modal-actions .btn { flex:1; padding:12px; border-radius:var(--radius-sm); font-weight:600; border:none; cursor:pointer; transition:0.2s; }
+
+        #resultPage { align-items:center; justify-content:center; text-align:center; gap:12px; min-height:0; }
+        .result-icon-svg { width:64px; height:64px; margin-bottom:8px; }
+        .result-title { font-size:2rem; font-weight:900; letter-spacing:-1px; }
+        .result-title.win { color:var(--text-primary); }
+        .result-title.lose { color:var(--text-muted); }
+        .result-reason { color:var(--text-secondary); font-size:0.9rem; max-width:320px; }
+        .result-badge { display:inline-block; padding:4px 14px; border-radius:999px; font-size:0.8rem; font-weight:600; background:var(--primary); color:#000; }
+
+        #multiLobbyPage { padding:0; }
+        .multi-lobby-card { background:var(--surface); border-radius:var(--radius-lg); padding:32px; box-shadow:var(--shadow-sm); text-align:center; width:100%; max-width:340px; border:1px solid var(--border-light); }
+        #multiGamePage { flex:1; flex-direction:column; min-height:0; padding:0; background:var(--bg-body); position:relative; overflow:hidden; }
+        #multiResultPage { align-items:center; justify-content:center; padding:0; }
+        #multiResultPage .multi-lobby-card { padding:24px; display:flex; flex-direction:column; align-items:center; }
+        .admin-bar { display:none; padding:8px 12px; background:rgba(217,56,56,0.12); border-top:1px solid rgba(217,56,56,0.3); border-bottom:1px solid rgba(217,56,56,0.3); font-size:0.75rem; color:var(--text-secondary); flex-direction:column; }
+        .reveal-overlay { display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:100; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:40px; }
+
+        @media (max-width:480px) {
+            .container { max-width:100%; }
+            .home-bg-number { font-size:5rem; right:10px; }
+            .home-intro h1 { font-size:1.8rem; }
+            .footer-typography .big-text { font-size:2.8rem; }
+        }
+
+        .toast { position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-80px); z-index:999; padding:12px 20px; border-radius:var(--radius-sm); background:var(--surface); color:var(--text-primary); border:1px solid var(--border-light); font-weight:500; font-size:0.85rem; box-shadow:0 8px 20px rgba(0,0,0,0.3); transition:transform 0.3s ease,opacity 0.3s ease; opacity:0; pointer-events:none; max-width:90vw; text-align:center; white-space:pre-line; }
+        .toast.show { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
+        .toast.error { background:rgba(217,56,56,0.2); border-color:var(--error); color:var(--error); }
+        .toast.success { border-color:var(--primary); }
+
+        #announceBanner { display:none; background:var(--surface); border-bottom:1px solid var(--border-light); padding:10px 40px 10px 20px; font-size:0.85rem; color:var(--text-secondary); text-align:center; line-height:1.5; flex-shrink:0; position:relative; }
+        #announceBanner .announce-close { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:2px 8px; line-height:1; }
+        #announceBanner .announce-close:hover { color:var(--text-primary); }
+        #logPanel { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; }
+        #logPanel .log-box { background:var(--bg-card,#1e1e2e); border-radius:12px; width:min(720px,92vw); max-height:80vh; display:flex; flex-direction:column; box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+        #logPanel .log-head { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        #logPanel .log-head h3 { margin:0; font-size:1rem; }
+        #logPanel .log-actions { display:flex; gap:8px; }
+        #logPanel .log-actions button { padding:6px 12px; font-size:0.82rem; border:none; border-radius:6px; cursor:pointer; background:var(--primary,#6c5ce7); color:#fff; }
+        #logPanel .log-actions button.danger { background:var(--error,#e74c3c); }
+        #logPanel .log-actions button.ghost { background:rgba(255,255,255,0.12); }
+        #logList { overflow-y:auto; padding:12px 18px; font-family:Consolas,Monaco,monospace; font-size:0.78rem; line-height:1.6; }
+        #logList .log-item { padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04); word-break:break-all; color:var(--text-secondary,#a0a0b0); }
+
+        /* =================== 观战面板 (两页独立) =================== */
+        #watchPanel { display:none; position:fixed; inset:0; z-index:9000; background:var(--bg-body); flex-direction:column; }
+        #watchPanel.active { display:flex; }
+        /* 选择房间页面 */
+        #watchSelectPage { flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg-body); }
+        #watchSelectPage.hidden { display:none; }
+        .watch-select-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--surface); border-bottom:1px solid var(--border-light); flex-shrink:0; }
+        .watch-select-header .ws-title { font-weight:700; font-size:1.1rem; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+        .watch-select-header .ws-title svg { width:22px; height:22px; color:var(--text-primary); }
+        .watch-select-header .ws-actions { display:flex; gap:8px; }
+        .watch-select-header .ws-actions button { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:500; transition:all 0.15s; }
+        .watch-select-body { flex:1; display:flex; flex-direction:column; padding:16px 20px 20px; min-height:0; overflow:hidden; }
+        .watch-select-body .watch-search-bar { display:flex; gap:10px; margin-bottom:16px; }
+        .watch-select-body .watch-search-bar input { flex:1; padding:10px 14px; border:1px solid var(--border-light); border-radius:10px; background:var(--surface); font-size:0.9rem; outline:none; color:var(--text-primary); }
+        .watch-select-body .watch-search-bar input:focus { border-color:var(--primary); }
+        .watch-select-body .watch-search-bar button { padding:10px 18px; border:none; border-radius:10px; background:var(--primary); color:#000; cursor:pointer; font-size:0.85rem; font-weight:600; }
+        .watch-mode-tabs { display:flex; border-radius:8px; overflow:hidden; border:1px solid var(--border-light); margin-bottom:16px; }
+        .watch-mode-tab { flex:1; text-align:center; padding:10px 0; font-size:0.85rem; cursor:pointer; background:var(--bg-body); color:var(--text-secondary); border:none; font-weight:500; transition:all 0.15s; }
+        .watch-mode-tab:not(:last-child) { border-right:1px solid var(--border-light); }
+        .watch-mode-tab.active { background:var(--primary); color:#000; font-weight:600; }
+        .watch-room-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px; }
+        .watch-room-card { padding:14px 16px; background:var(--surface); border-radius:12px; border:1px solid var(--border-light); cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
+        .watch-room-card:hover { border-color:var(--primary); background:var(--bg-body); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+        .watch-room-card.selected { border-color:var(--primary); background:rgba(251,188,5,0.05); }
+        .room-info-wrap { display:flex; flex-direction:column; gap:4px; flex:1; overflow:hidden; }
+        .room-players { font-weight:600; font-size:0.95rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .room-id { font-size:0.7rem; color:var(--text-muted); font-family:monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .room-status-tag-wrap { display:flex; gap:6px; flex-wrap:wrap; margin-top:2px; }
+        .status-tag { padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:600; display:inline-block; }
+        .status-tag.chatting { background:#E3F2FD; color:#1E88E5; }
+        .status-tag.judging { background:#FFF3E0; color:#FB8C00; }
+        .room-extra-info { font-size:0.7rem; color:var(--text-muted); }
+        .watch-btn-enter { padding:8px 20px; border:none; background:var(--primary); color:#000; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600; flex-shrink:0; margin-left:12px; transition:all 0.2s; }
+        .watch-btn-enter:hover { filter:brightness(1.1); transform:scale(1.02); }
+        .watch-empty { text-align:center; color:var(--text-muted); padding:60px 20px; font-size:0.9rem; }
+
+        /* 观战房间页面 */
+        #watchRoomPage { flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg-body); }
+        #watchRoomPage.hidden { display:none; }
+        .watch-room-header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--surface); border-bottom:1px solid var(--border-light); flex-shrink:0; }
+        .watch-room-header .wr-title { font-weight:700; font-size:1rem; color:var(--text-primary); }
+        .watch-room-header .wr-actions { display:flex; gap:8px; }
+        .watch-room-header .wr-actions button { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:500; }
+        #watchRoomPlayers { display:flex; gap:8px; flex-wrap:wrap; padding:8px 20px; background:var(--bg-body); border-bottom:1px solid var(--border-light); flex-shrink:0; }
+        #watchRoomPlayers .player-tag { background:rgba(157,191,60,0.1); padding:4px 12px; border-radius:6px; font-size:0.8rem; border:1px solid var(--border-light); display:flex; align-items:center; gap:6px; }
+        #watchRoomPlayers .player-tag .tag-type { font-weight:600; }
+        #watchRoomPlayers .player-tag .btn-ban { margin-left:4px; padding:2px 8px; background:#fff; border:1px solid var(--error); border-radius:4px; color:var(--error); cursor:pointer; font-size:0.7rem; }
+        #watchRoomAdmin { display:flex; gap:8px; align-items:center; padding:8px 20px; background:rgba(251,188,5,0.05); border-bottom:1px solid var(--border-light); flex-shrink:0; }
+        #watchRoomAdmin .warn-label { background:rgba(217,56,56,0.1); padding:4px 10px; border-radius:6px; color:var(--error); font-size:0.8rem; font-weight:500; flex-shrink:0; }
+        #watchRoomAdmin input { flex:1; padding:7px 12px; border:1px solid var(--border-light); border-radius:8px; background:var(--surface); outline:none; font-size:0.9rem; color:var(--text-primary); }
+        #watchRoomAdmin input:focus { border-color:var(--primary); }
+        #watchRoomAdmin button { background:var(--error); color:#fff; border:none; border-radius:8px; padding:7px 18px; cursor:pointer; font-weight:600; font-size:0.85rem; }
+        .watch-chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; background:var(--bg-body); }
+        .watch-chat-messages .watch-chat-msg { max-width:80%; animation:messageIn 0.25s ease-out; }
+        .watch-chat-messages .wm-system { align-self:center; max-width:100%; color:var(--text-muted); font-size:0.8rem; }
+        .watch-chat-messages .wm-opponent { align-self:flex-start; }
+        .watch-chat-messages .wm-self { align-self:flex-end; }
+        .wm-bubble { padding:10px 14px; border-radius:16px; font-size:0.95rem; line-height:1.5; word-break:break-word; }
+        .watch-chat-messages .wm-self .wm-bubble { background:var(--primary); color:#111; border-bottom-right-radius:4px; }
+        .watch-chat-messages .wm-opponent .wm-bubble { background:var(--surface); color:var(--text-primary); border-bottom-left-radius:4px; border:1px solid var(--border-light); }
+        .wm-sender { font-size:0.7rem; color:var(--text-muted); margin:0 4px 4px; font-weight:500; }
+        .watch-chat-messages .wm-self .wm-sender { text-align:right; }
+        .wm-sticker { max-width:120px; max-height:120px; border-radius:12px; display:block; box-shadow:var(--shadow-sm); background:var(--surface); }
+        .watch-chat-messages .wm-self .wm-sticker { margin-left:auto; }
+        .watch-chat-messages .wm-opponent .wm-sticker { margin-right:auto; }
+        /* =================== 观战面板结束 =================== */
+
+        /* 聊天大厅气泡样式 */
+        #chatLobbyPage { display:flex; flex-direction:column; height:100vh; padding:0; overflow:hidden; }
+        #chatLobbyMessages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--bg-body); }
+        .cl-msg-wrapper { max-width:80%; width:fit-content; animation:messageIn 0.25s ease-out; position:relative; }
+        .cl-msg-wrapper.cl-self { margin-left:auto; margin-right:0; text-align:right; }
+        .cl-msg-wrapper.cl-other { align-self:flex-start; }
+        .cl-msg-bubble { padding:10px 14px; border-radius:16px; font-size:0.9rem; line-height:1.5; word-break:break-word; display:inline-block; max-width:100%; }
+        .cl-msg-wrapper.cl-self .cl-msg-bubble { background:var(--primary); color:#111111; border-bottom-right-radius:4px; }
+        .cl-msg-wrapper.cl-other .cl-msg-bubble { background:var(--surface); color:var(--text-primary); border-bottom-left-radius:4px; border:1px solid var(--border-light); }
+        .cl-msg-sender { font-size:0.7rem; color:var(--text-muted); margin:0 4px 4px; font-weight:500; cursor:pointer; }
+        .cl-msg-wrapper.cl-self .cl-msg-sender { text-align:right; }
+        .cl-msg-time { font-size:0.6rem; color:var(--text-muted); margin:0 4px 4px; }
+        .cl-msg-wrapper.cl-self .cl-msg-time { text-align:right; }
+        .cl-msg-reply-ref { font-size:0.68rem; color:var(--text-muted); margin-bottom:4px; padding-left:12px; border-left:2px solid var(--border-light); cursor:pointer; line-height:1.3; opacity:0.8; }
+        .cl-msg-reply-ref:hover { opacity:1; color:var(--primary); }
+        .cl-sticker-img { max-width:120px; max-height:120px; border-radius:12px; display:block; background:var(--surface); }
+        .cl-msg-wrapper.cl-self .cl-sticker-img { margin-left:auto; }
+
+        .sticker-btn-chat { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border:none; background:var(--bg-body); border-radius:50%; cursor:pointer; flex-shrink:0; transition:background 0.2s; }
+        .sticker-btn-chat:hover { background:var(--border-light); }
+        .sticker-btn-chat svg { width:20px; height:20px; color:var(--text-muted); }
+
+        #chatOnlineModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:flex-end; justify-content:center; }
+        #chatOnlineModal.visible { display:flex; }
+
+        /* =================== 迷你聊天组件 =================== */
+        /* 聊天面板 */
+        .mini-chat-panel {
+            position:fixed; bottom:24px; right:24px; width:370px; height:460px;
+            max-height:calc(100vh - 48px); background:var(--surface); border-radius:16px;
+            box-shadow:0 8px 40px rgba(0,0,0,0.18); z-index:100;
+            display:flex; flex-direction:column; overflow:hidden;
+            border:1px solid var(--border-light);
+            transition:opacity 0.25s,transform 0.25s;
+            transform-origin:bottom right;
+        }
+        .mini-chat-panel.opening { opacity:0; transform:translateY(24px) scale(0.88); }
+        .mini-chat-panel.closing { opacity:0; transform:translateY(24px) scale(0.88); }
+        /* 面板头部 */
+        .mini-chat-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:10px 16px; border-bottom:1px solid var(--border-light);
+            background:var(--surface); flex-shrink:0; cursor:default;
+        }
+        .mini-chat-header-left { display:flex; align-items:center; gap:8px; min-width:0; }
+        .mini-chat-title {
+            font-weight:700; font-size:0.88rem; color:var(--text-primary);
+        }
+        .mini-chat-online { font-size:0.68rem; color:var(--text-muted); white-space:nowrap; }
+        .mini-chat-header-right { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+        .mini-chat-btn {
+            width:30px; height:30px; border-radius:8px; border:none; background:transparent;
+            color:var(--text-muted); cursor:pointer; display:flex; align-items:center;
+            justify-content:center; transition:all 0.15s; flex-shrink:0;
+            -webkit-tap-highlight-color:transparent;
+        }
+        .mini-chat-btn:hover { background:var(--bg-body); color:var(--text-primary); }
+        .mini-chat-btn svg { width:16px; height:16px; }
+
+        /* 消息列表 */
+        .mini-chat-messages {
+            flex:1; overflow-y:auto; padding:10px 12px; display:flex; flex-direction:column;
+            gap:6px; background:var(--bg-body); min-height:0; position:relative;
+            overscroll-behavior:contain;
+        }
+        .mini-chat-empty {
+            text-align:center; color:var(--text-muted); font-size:0.8rem;
+            padding:40px 16px; flex:1; display:flex; align-items:center; justify-content:center;
+        }
+        /* 滚动到底部按钮 */
+        .mini-scroll-hint {
+            position:sticky; bottom:4px; align-self:center; width:32px; height:32px;
+            border-radius:50%; background:var(--surface); border:1px solid var(--border-light);
+            box-shadow:0 2px 10px rgba(0,0,0,0.1); cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            z-index:5; animation:miniHintIn 0.2s ease-out; color:var(--text-secondary);
+            margin-top:-32px;
+        }
+        .mini-scroll-hint svg { width:16px; height:16px; }
+        @keyframes miniHintIn {
+            from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)}
+        }
+        /* 消息行 */
+        .mini-msg {
+            display:flex; flex-direction:column; max-width:82%;
+            animation:miniMsgIn 0.2s ease-out;
+        }
+        .mini-msg.self { align-self:flex-end; align-items:flex-end; }
+        .mini-msg.other { align-self:flex-start; align-items:flex-start; }
+        .mini-msg.system { align-self:center; max-width:90%; align-items:center; text-align:center; }
+        @keyframes miniMsgIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+        .mini-msg-sender { font-size:0.62rem; color:var(--text-muted); margin-bottom:1px; padding:0 4px; }
+        .mini-msg-bubble {
+            padding:7px 12px; border-radius:14px; font-size:0.82rem; line-height:1.42;
+            word-break:break-word; max-width:100%;
+        }
+        .mini-msg.self .mini-msg-bubble {
+            background:var(--primary); color:#111; border-bottom-right-radius:4px;
+        }
+        .mini-msg.other .mini-msg-bubble {
+            background:var(--surface); color:var(--text-primary);
+            border-bottom-left-radius:4px; border:1px solid var(--border-light);
+        }
+        .mini-msg-sticker { max-width:72px; max-height:72px; border-radius:10px; display:block; background:var(--surface); }
+        .mini-msg.self .mini-msg-sticker { margin-left:auto; }
+
+        /* 输入区域 */
+        .mini-chat-input-area {
+            padding:8px 12px; border-top:1px solid var(--border-light); background:var(--surface);
+            display:flex; gap:8px; align-items:center; flex-shrink:0;
+        }
+        .mini-chat-input {
+            flex:1; padding:8px 12px; border:1px solid var(--border-light); border-radius:18px;
+            font-size:0.85rem; outline:none; background:var(--bg-body); color:var(--text-primary);
+            font-family:'Inter',sans-serif; min-width:0; transition:border-color 0.15s;
+        }
+        .mini-chat-input:focus { border-color:var(--primary); }
+        .mini-chat-input::placeholder { color:var(--text-muted); }
+        .mini-chat-input:disabled { opacity:0.5; cursor:not-allowed; }
+        .mini-chat-send-btn {
+            width:36px; height:36px; border-radius:50%; border:none; background:var(--primary);
+            color:var(--text-primary); cursor:pointer; display:flex; align-items:center;
+            justify-content:center; flex-shrink:0; transition:all 0.15s;
+        }
+        .mini-chat-send-btn:hover { background:var(--primary-hover); transform:scale(1.06); }
+        .mini-chat-send-btn:active { transform:scale(0.93); }
+        .mini-chat-send-btn svg { width:18px; height:18px; }
+
+        /* 手机端适配 */
+        @media (max-width:600px) {
+            .mini-chat-panel {
+                left:0; right:0; bottom:0; width:100%; height:68vh;
+                border-radius:20px 20px 0 0; max-height:85vh; transform-origin:bottom center;
+            }
+            .mini-chat-panel.opening { transform:translateY(100%) scale(1); }
+            .mini-chat-panel.closing { transform:translateY(100%) scale(1); }
+            .mini-chat-messages { padding:8px 12px; gap:4px; }
+            .mini-msg-bubble { font-size:0.88rem; padding:8px 14px; }
+            .mini-chat-input { font-size:0.9rem; padding:10px 14px; }
+            .mini-chat-send-btn { width:40px; height:40px; }
+            .mini-chat-send-btn svg { width:20px; height:20px; }
+            .mini-chat-header { padding:12px 16px; }
+            .mini-chat-title { font-size:0.95rem; }
+        }
+    </style>
+    <meta name="msvalidate.01" content="86026F9D21228DD5B709A52DCD563C86" />
+</head>
+<body>
+
+<div class="container" id="app">
+    <div id="announceBanner">
+        <span id="announceText"></span>
+        <button class="announce-close" onclick="closeAnnounce()">✕</button>
+    </div>
+    <div class="app-header">
+        <div class="header-left">
+            <div class="nav-brand">TURING? <span>图灵</span></div>
+            <div class="header-stats">
+                <span id="onlineCount">在线 0</span>
+                <span class="stat-dot"></span>
+                <span id="pingDisplay">延迟 --ms</span>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <span class="admin-trigger" id="adminTrigger" title="连续点击4次进入管理员">图灵玩家</span>
+        </div>
+    </div>
+
+    <!-- 主页 -->
+    <div class="page active" id="homePage">
+        <div class="home-bg-number">01</div>
+        <div class="home-intro"><div class="sub">ENTER THE ROOM</div><h1>取个名字开始匹配</h1></div>
+        <div class="identity-card">
+            <div class="identity-header"><span class="green-dot"></span> IDENTITY PREVIEW / 07</div>
+            <div class="identity-title" id="identityTitle">未命名观察者</div>
+            <div id="recoveryDisplayRow" class="recovery-display-row">
+                <div class="recovery-label">恢复码 <span style="font-weight:400;color:var(--text-muted)">（点击复制）</span></div>
+                <div class="recovery-code-value" id="recoveryCodeDisplay" onclick="copyRecoveryCode()">
+                    <span id="recoveryCodeText">------</span>
+                    <span class="copy-hint" id="recoveryCopyHint">点击复制</span>
+                </div>
+            </div>
+            <div id="recoveryLoginRow" class="recovery-input-row" style="display:none;">
+                <input type="text" id="recoveryCodeInput" placeholder="输入恢复码" maxlength="8" onkeydown="if(event.key==='Enter')submitRecoveryCode()">
+                <button onclick="submitRecoveryCode()">恢复</button>
+            </div>
+            <div id="recoveryToggleRow" style="margin-top:6px;">
+                <span class="recovery-toggle-link" id="recoveryToggleLink" onclick="toggleRecoveryInput()" style="display:none;">使用恢复码登录</span>
+            </div>
+            <div id="changeNickRow" class="change-nick-row" style="display:none;">
+                <span class="change-nick-link" id="changeNickLink" onclick="showChangeNickname()">修改昵称</span>
+            </div>
+            <div id="changeNickPanel" class="change-nick-panel">
+                <input type="text" id="changeNickInput" placeholder="输入新昵称" maxlength="20" onkeydown="if(event.key==='Enter')submitChangeNickname()">
+                <button id="changeNickBtn" onclick="submitChangeNickname()">确认</button>
+                <div class="change-nick-hint">每 30 天仅可修改一次</div>
+            </div>
+        </div>
+        <div class="input-section" id="inputSection" style="display:none">
+            <div class="input-wrapper">
+                <input type="text" id="nicknameInput" placeholder="例如：迟疑的人" maxlength="20" oninput="updateHomeProgress(this)">
+                <div class="input-progress" id="homeProgressBar"></div>
+                <button class="save-btn" onclick="saveNickname()">保存</button>
+            </div>
+            <div class="input-counter"><span id="homeCharCount">0</span>/20</div>
+        </div>
+        <button class="big-action-btn" onclick="joinQueue()"><span>进入匹配</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></button>
+        <div class="home-actions">
+            <button class="btn-ghost btn-primary-ghost" disabled style="opacity:0.4;cursor:not-allowed;text-decoration:line-through;" title="多人模式暂不可用">多人游戏 <span style="font-size:0.6rem;opacity:0.7">禁用</span></button>
+            <button class="btn-ghost" onclick="enterChatLobby()" style="border-color:var(--primary);color:var(--primary);">聊天大厅</button>
+            <button class="btn-ghost" id="watchBtn" onclick="openWatchPanel()" style="display:none;background:var(--error);color:#fff;border-color:var(--error);font-weight:600">实时观战</button>
+        </div>
+        <div class="alt-line-hint">
+            如延迟过高可尝试使用备用线路：
+            <a href="http://testipv6.cn/" target="_blank" rel="noopener">检测IPv6</a>
+            &nbsp;|&nbsp;
+            <a href="http://game6.415029375.xyz/?v=2026072901" target="_blank" rel="noopener">备用线路</a>
+        </div>
+        <div class="disclaimer">继续即表示你同意文明交流。不要发送真实姓名、地址或联系方式。</div>
+        <div class="online-status" id="homeOnline">在线：--</div>
+        <div class="footer-typography">
+            <span class="small-caps">A FIVE-MINUTE SOCIAL EXPERIMENT</span>
+            <div class="big-text">语言会<br>伪装，<br>你相信<span>谁？</span></div>
+            <div class="footer-desc-text">在一段匿名对话里，停顿、措辞，甚至犹豫都可能成为证词。</div>
+        </div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:8px;">你的ID：<span id="myUserIdLabel" style="font-family:monospace"></span></div>
+        <div style="margin-top:12px;"><span class="admin-trigger" id="logBtn" title="查看操作日志" style="font-size:0.7rem;opacity:0.6;">日志</span></div>
+    </div>
+
+    <!-- 匹配队列 -->
+    <div class="page" id="queuePage">
+        <div class="queue-spinner"></div>
+        <div class="queue-text" id="queueText">正在匹配对手...</div>
+        <div class="queue-hint">正在为你分配对手，请稍候</div>
+        <div style="display:flex;gap:12px;margin-top:24px;justify-content:center;">
+            <button class="btn btn-secondary" onclick="leaveQueue()" style="padding:10px 24px;font-size:0.875rem;font-weight:600;background:var(--surface);border:1px solid var(--error);color:var(--error);border-radius:8px;cursor:pointer;">取消匹配</button>
+            <button class="btn btn-primary" onclick="openMiniChat()" style="padding:10px 24px;font-size:0.875rem;font-weight:600;border:none;background:var(--primary);color:var(--text-primary);border-radius:8px;cursor:pointer;">聊天大厅</button>
+        </div>
+    </div>
+
+    <!-- 1v1 游戏 -->
+    <div class="page" id="gamePage">
+        <div class="game-header">
+            <div class="game-left-group">
+                <button class="exit-btn" id="exitGameBtn" onclick="leaveQueue()" title="退出游戏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <div class="game-opponent-info">
+                    <div class="game-opponent-name" id="opponentName">等待对手</div>
+                    <div class="game-opponent-status" id="opponentStatus">在线</div>
+                </div>
+            </div>
+            <button class="btn-ghost" id="reportBtn" onclick="openReportModal()" style="font-size:0.7rem;">举报</button>
+        </div>
+        <div class="timer-bar msg-timeout" id="msgTimeoutBar">首发消息 · 剩 60 秒</div>
+        <div class="timer-bar total visible" id="totalTimerBar">总时间 10:00</div>
+        <div class="timer-bar judge-timeout" id="judgmentTimerBar"></div>
+        <div class="admin-bar" id="adminInfoBar">
+            <span style="color:var(--error);font-weight:600">【管理员模式】</span>
+            <span id="adminOppInfo"></span>
+            <div style="display:flex;gap:6px;margin-top:4px">
+                <input type="text" id="adminBanReason" placeholder="封禁理由" style="flex:1;padding:4px 8px;font-size:0.75rem;border:1px solid var(--border-dark);border-radius:6px;outline:none;background:var(--surface);color:var(--text-primary);">
+                <input type="number" id="adminBanNum" value="7" min="1" style="width:48px;padding:4px 6px;font-size:0.75rem;border:1px solid var(--border-dark);border-radius:6px;outline:none;background:var(--surface);color:var(--text-primary);">
+                <select id="adminBanDur" style="padding:4px 6px;font-size:0.75rem;border:1px solid var(--border-dark);border-radius:6px;background:var(--surface);color:var(--text-primary);outline:none;">
+                    <option value="分钟">分钟</option><option value="小时">小时</option><option value="天" selected>天</option><option value="月">个月</option><option value="永久">永久</option>
+                </select>
+                <button onclick="adminBan()" style="padding:4px 12px;font-size:0.75rem;background:var(--error);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">封禁</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="typing-indicator" id="typingIndicator"><span></span><span></span><span></span></div>
+        <div class="judge-btn-container" id="judgeSection">
+            <button class="judge-btn" id="judgeBtn" onclick="openJudgeModal()" disabled>做出判断</button>
+            <span class="judge-hint" id="judgeHint">双方各发送至少一条消息后即可判断</span>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-wrapper-sticker">
+                <button class="sticker-btn-css" onclick="toggleStickerPopup()" title="表情包"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></button>
+                <input type="text" id="chatInput" placeholder="输入消息..." maxlength="60" onkeydown="if(event.key==='Enter')sendMessage()">
+                <button class="send" onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果页 -->
+    <div class="page" id="resultPage">
+        <div id="resultIconContainer" style="margin-bottom:8px;">
+            <svg class="result-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" id="resultSvgWin" style="display:none;color:var(--primary);">
+                <circle cx="32" cy="32" r="28"/><polyline points="18,32 28,42 46,22"/>
+            </svg>
+            <svg class="result-icon-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" id="resultSvgLose" style="display:none;color:var(--text-muted);">
+                <circle cx="32" cy="32" r="28"/><line x1="22" y1="22" x2="42" y2="42"/><line x1="42" y1="22" x2="22" y2="42"/>
+            </svg>
+        </div>
+        <div class="result-title" id="resultTitle">你赢了</div>
+        <div class="result-reason" id="resultReason"></div>
+        <div class="result-badge" id="resultBadge">对方是 AI</div>
+        <div id="opponentGuessBox" style="font-size:0.8rem;color:var(--text-secondary);margin-top:6px;display:none;">对方判断你是：<span id="opponentGuess" style="font-weight:600;color:#000;"></span></div>
+        <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:240px;">
+            <button class="big-action-btn" style="justify-content:center;" onclick="joinQueue()">再来一局</button>
+            <button class="btn-ghost" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+
+    <!-- 多人游戏 -->
+    <div class="page" id="multiLobbyPage">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+            <div class="multi-lobby-card">
+                <div style="font-size:1.5rem;font-weight:700;">多人游戏</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:24px;">等 3 人以上加入后自动开始</div>
+                <div id="multiLobbyCount" style="font-size:3.5rem;font-weight:900;color:var(--primary);"><span id="multiLobbyNum">0</span><span style="font-size:2rem;color:var(--text-muted);">/5</span></div>
+                <div id="multiCountdown" style="margin-top:8px;font-size:1rem;color:#D93838;font-weight:600;display:none;"></div>
+                <div id="multiAdminPanel" style="display:none;margin-top:12px;">
+                    <button class="btn-ghost" id="adminForceBtn" onclick="adminForceMulti()" style="font-size:0.75rem;border:1px solid var(--error);color:var(--error);">跳过等待 (用AI补位)</button>
+                </div>
+            </div>
+            <button class="btn-ghost" onclick="openMiniChat()" style="border-color:var(--primary);color:var(--primary);">聊天大厅</button>
+            <button class="btn-ghost" onclick="leaveMulti()">退出大厅</button>
+        </div>
+    </div>
+
+    <div class="page" id="multiGamePage">
+        <div class="game-header">
+            <div class="game-left-group">
+                <button class="exit-btn" id="exitMultiBtn" onclick="leaveMulti()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <div style="font-size:0.875rem;font-weight:600;">多人 · <span id="multiMyNum" style="color:var(--primary)">#1</span></div>
+            </div>
+            <div id="multiPlayerList" style="display:flex;gap:6px;flex-wrap:wrap;font-size:0.7rem;color:var(--text-muted);"></div>
+            <button class="btn-ghost" onclick="openReportModalMulti()" style="font-size:0.7rem;">举报</button>
+        </div>
+        <div id="multiDiscussBanner" style="display:none;padding:8px 16px;background:var(--primary);border-bottom:1px solid var(--border-light);text-align:center;font-weight:600;font-size:0.85rem;color:var(--text-primary);flex-shrink:0;">讨论阶段</div>
+        <div class="chat-messages" id="multiChatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;"></div>
+        <div class="reveal-overlay" id="multiRevealOverlay">
+            <div id="multiRevealEmoji" style="font-size:4rem;"></div>
+            <div id="multiRevealText" style="font-size:1.2rem;color:#fff;font-weight:600;"></div>
+            <div id="multiRevealVerdict" style="font-size:1.5rem;font-weight:700;color:#fff;display:none;"></div>
+        </div>
+        <div id="multiVoteBar" style="display:none;padding:12px 16px;background:rgba(251,188,5,0.08);border-top:1px solid rgba(251,188,5,0.3);border-bottom:1px solid rgba(251,188,5,0.3);flex-shrink:0;">
+            <div style="font-weight:600;font-size:0.85rem;color:#E37400;margin-bottom:4px">投票：你觉得谁是 AI？ <span id="multiVoteTimerLabel">30s</span></div>
+            <div id="multiVoteBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;"></div>
+            <div id="multiVoteHint" style="font-size:0.75rem;color:var(--text-muted);"></div>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-wrapper-sticker">
+                <button class="sticker-btn-css" onclick="toggleStickerPopup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></button>
+                <input id="multiChatInput" type="text" placeholder="输入消息..." maxlength="60" onkeydown="if(event.key==='Enter')sendMultiChat()">
+                <button class="send" onclick="sendMultiChat()">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="multiResultPage">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:2rem;">
+            <div class="multi-lobby-card">
+                <div style="font-size:3rem;" id="multiResultEmoji"></div>
+                <h2 id="multiResultTitle" style="font-size:1.4rem;"></h2>
+                <div id="multiResultDetail" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;"></div>
+                <div id="multiVoteSummary" style="font-size:0.8rem;color:var(--text-muted);"></div>
+            </div>
+            <button class="big-action-btn" style="justify-content:center;padding:12px;" onclick="joinMulti()">再来一局</button>
+            <button class="btn-ghost" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+
+    <!-- 聊天大厅 -->
+    <div class="page" id="chatLobbyPage" style="display:flex;flex-direction:column;height:100vh;padding:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-light);background:var(--surface);flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button class="btn-ghost" onclick="leaveChatLobby()" style="padding:4px 8px;font-size:0.8rem;">返回</button>
+                <span style="font-weight:700;font-size:1rem;">聊天大厅</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span id="chatLobbyOnlineCount" onclick="showChatOnlineList()" style="font-size:0.8rem;color:var(--text-muted);cursor:pointer;">在线: 0</span>
+                <button id="chatLobbyNotiBtn" onclick="chatLobbyJumpToNoti()" style="display:none;padding:4px 10px;border:1px solid var(--primary);border-radius:6px;background:var(--primary);color:var(--text-primary);font-size:0.75rem;cursor:pointer;font-weight:600;"></button>
+                <button id="chatLobbyWarnBtn" onclick="chatSendWarn()" style="display:none;padding:4px 10px;border:1px solid var(--error);border-radius:6px;background:transparent;color:var(--error);font-size:0.75rem;cursor:pointer;">警告</button>
+            </div>
+        </div>
+        <div id="chatLobbyMessages"></div>
+        <div id="chatLobbyAtPopup" style="display:none;position:absolute;bottom:60px;left:16px;right:16px;max-height:200px;overflow-y:auto;background:var(--surface);border:1px solid var(--border-light);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:50;"></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border-light);background:var(--surface);flex-shrink:0;">
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="sticker-btn-chat" onclick="toggleChatLobbySticker()" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+                <input id="chatLobbyInput" type="text" placeholder="输入消息..." maxlength="200" style="flex:1;padding:8px 12px;border:1px solid var(--border-light);border-radius:20px;font-size:0.875rem;outline:none;" oninput="chatLobbyAtSearch(this)" onkeydown="if(event.key==='Enter')sendChatLobbyMsg()">
+                <button onclick="sendChatLobbyMsg()" style="padding:8px 16px;border:none;border-radius:20px;background:var(--primary);color:var(--text-primary);font-weight:600;font-size:0.85rem;cursor:pointer;flex-shrink:0;">发送</button>
+            </div>
+        </div>
+        <div id="chatLobbyReplyBar" style="display:none;padding:8px 16px;background:var(--bg-body);border-top:1px solid var(--border-light);font-size:0.8rem;color:var(--text-secondary);flex-shrink:0;">
+            <span id="chatLobbyReplyInfo"></span>
+            <button onclick="cancelChatReply()" style="margin-left:8px;border:none;background:none;color:var(--text-muted);cursor:pointer;">✕</button>
+        </div>
+        <div id="chatLobbyStickerPanel" style="display:none;padding:8px 16px;border-top:1px solid var(--border-light);background:var(--surface);max-height:150px;overflow-y:auto;flex-shrink:0;"></div>
+    </div>
+
+    <!-- 在线用户弹窗 -->
+    <div class="modal-overlay" id="chatOnlineModal" onclick="if(event.target===this)this.classList.remove('visible')">
+        <div style="background:var(--surface);border-radius:16px 16px 0 0;padding:16px;max-height:60vh;width:100%;max-width:480px;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h3 style="font-size:1rem;">在线用户</h3><button onclick="document.getElementById('chatOnlineModal').classList.remove('visible')" style="border:none;background:none;font-size:1.2rem;cursor:pointer;">✕</button></div>
+            <div id="chatOnlineList"></div>
+        </div>
+    </div>
+
+    <div id="chatLobbyContextMenu" style="display:none;position:fixed;z-index:300;background:var(--surface);border:1px solid var(--border-light);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);overflow:hidden;min-width:120px;"></div>
+
+    <!-- 迷你聊天面板 -->
+    <div id="miniChatPanel" class="mini-chat-panel" style="display:none;">
+        <div class="mini-chat-header">
+            <div class="mini-chat-header-left">
+                <span class="mini-chat-title">聊天大厅</span>
+                <span id="miniChatOnline" class="mini-chat-online">在线: 0</span>
+            </div>
+            <div class="mini-chat-header-right">
+                <button class="mini-chat-btn" onclick="closeMiniChat()" title="关闭">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="miniChatMessages" class="mini-chat-messages">
+            <div class="mini-chat-empty">暂无消息</div>
+        </div>
+        <div class="mini-chat-input-area">
+            <input id="miniChatInput" class="mini-chat-input" type="text" placeholder="输入消息..." maxlength="200" onkeydown="handleMiniChatKey(event)">
+            <button class="mini-chat-send-btn" onclick="sendMiniChatMsg()" title="发送">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="judgeModal"><div class="modal"><h2>你的判断</h2><p>经过刚才的对话，你认为你的对手是...</p><div class="modal-actions"><button class="btn" style="background:var(--bg-body);" onclick="makeJudgment('ai')">AI</button><button class="btn" style="background:var(--primary);" onclick="makeJudgment('human')">真人</button></div></div></div>
+    <div class="modal-overlay" id="reportModal"><div class="modal"><button class="btn-ghost" style="position:absolute;top:12px;right:16px;" onclick="closeReportModal()">✕</button><h2>举报</h2><div id="reportPlayerField" style="display:none;margin-bottom:12px;"><select id="reportTarget" style="width:100%;padding:8px;border:1px solid var(--border-light);border-radius:8px;"><option value="">请选择</option></select></div><textarea id="reportReason" placeholder="输入举报理由..." style="width:100%;min-height:80px;padding:10px;margin-bottom:12px;border:1px solid var(--border-light);border-radius:8px;resize:vertical;outline:none;"></textarea><div class="modal-actions"><button class="btn" style="background:var(--bg-body);" onclick="closeReportModal()">取消</button><button class="btn" style="background:#D93838;color:#fff;" onclick="submitReport()">提交</button></div></div></div>
+    <div class="modal-overlay" id="notificationOverlay"><div class="modal"><div id="notificationContent"><h2>连接已断开</h2><p>正在自动重连...</p><button class="big-action-btn" style="justify-content:center;" onclick="closeNotification();goHome();">返回首页</button></div></div></div>
+</div>
+
+<div id="logPanel">
+    <div class="log-box">
+        <div class="log-head">
+            <h3>操作日志</h3>
+            <div class="log-actions">
+                <button onclick="exportLogs()">导出 JSON</button>
+                <button class="danger" onclick="clearLogs()">清空日志</button>
+                <button class="ghost" onclick="closeLogPanel()">关闭</button>
+            </div>
+        </div>
+        <div id="logList"></div>
+    </div>
+</div>
+
+<div id="stickerPopup" class="sticker-popup"></div>
+<div id="stickerOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:399" onclick="toggleStickerPopup()"></div>
+<div class="toast" id="toastEl"></div>
+
+<!-- 观战面板 (两页独立：选择房间 → 观战) -->
+<div id="watchPanel">
+    <!-- ====== 第 1 页：选择房间 ====== -->
+    <div id="watchSelectPage">
+        <div class="watch-select-header">
+            <div class="ws-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                实时观战
+                <span style="background:var(--error); color:#fff; padding:2px 8px; border-radius:4px; font-size:0.65rem;margin-left:4px;">ADMIN</span>
+            </div>
+            <div class="ws-actions">
+                <button onclick="closeWatchPanel()" style="background:var(--bg-body);color:var(--text-secondary);border:1px solid var(--border-light);">关闭</button>
+            </div>
+        </div>
+        <div class="watch-select-body">
+            <div class="watch-search-bar">
+                <input type="text" id="watchSearchInput" placeholder="搜索玩家昵称..." oninput="filterWatchList(this.value)">
+                <button onclick="refreshWatchList()">刷新</button>
+            </div>
+            <div class="watch-mode-tabs">
+                <div class="watch-mode-tab active" onclick="switchWatchMode('all',this)">全部</div>
+                <div class="watch-mode-tab" onclick="switchWatchMode('normal',this)">1v1</div>
+                <div class="watch-mode-tab" onclick="switchWatchMode('multi',this)">多人</div>
+            </div>
+            <div class="watch-room-list" id="watchRoomList">
+                <div class="watch-empty">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== 第 2 页：观战房间 ====== -->
+    <div id="watchRoomPage" class="hidden">
+        <div class="watch-room-header">
+            <div class="wr-title" id="watchRoomTitle">观战中...</div>
+            <div class="wr-actions">
+                <button onclick="stopWatching()" style="background:var(--error);color:#fff;">停止观战</button>
+            </div>
+        </div>
+        <div id="watchRoomPlayers">
+            <!-- 由 JS 动态渲染玩家标签 -->
+        </div>
+        <div id="watchRoomAdmin">
+            <span class="warn-label">房间警告:</span>
+            <input id="watchWarnInput" type="text" placeholder="输入警告内容..." onkeydown="if(event.key==='Enter')sendWatchWarn()">
+            <button onclick="sendWatchWarn()">发送</button>
+        </div>
+        <div class="watch-chat-messages" id="watchChatMessages">
+            <div class="watch-empty">正在加载聊天记录...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 缓存控制
+(function() {
+    if (!window.location.search.includes('v=')) {
+        const sep = window.location.search ? '&' : '?';
+        window.location.href = window.location.href + sep + 'v=' + Date.now();
+    }
+})();
+
+let ws = null, roomId = null, opponentName = '', canJudge = false, judgmentRequired = false, gameEnded = false, isAdmin = false;
+let multiInGame = false, multiMyNum = 0, multiVoted = false, multiPlayerNames = {}, multiVotedCount = 0, multiMyRole = 'human', multiSpectating = false;
+let multiVoteTimer = null, multiVoteCountdown = 0, multiDiscussTimer = null, multiVoteTimeout = 30;
+let adminClickCount = 0, adminClickTimer = null;
+const sentMsgIds = new Set();
+function generateMsgId() { return 'm_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10); }
+function trackSentMsg(id) { sentMsgIds.add(id); if(sentMsgIds.size>150){ const iter=sentMsgIds.values(); for(let i=0;i<30;i++){ const n=iter.next(); if(n.done)break; sentMsgIds.delete(n.value); } } }
+function isOwnEcho(data) {
+    if(data.client_msg_id && sentMsgIds.has(data.client_msg_id)) return true;
+    const myUserId = localStorage.getItem('turing_user_id')||'';
+    if(data.user_id && data.user_id === myUserId) return true;
+    return false;
+}
+let heartbeatTimer=null, lastMsgTime=Date.now();
+function startHeartbeat(){ lastMsgTime=Date.now(); if(heartbeatTimer)clearInterval(heartbeatTimer); heartbeatTimer=setInterval(()=>{ if(Date.now()-lastMsgTime>65000){ if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)) ws.close(); return; } if(ws&&ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({type:'ping',t:Date.now()})); },25000); }
+function stopHeartbeat(){ if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;} }
+function refreshLastMsgTime(){ lastMsgTime=Date.now(); }
+let latencyInterval=null;
+function checkLatency(){ const start=Date.now(); fetch('/api/online?_t='+start).then(res=>{ if(res.ok){ const lat=Date.now()-start; const el=document.getElementById('pingDisplay'); el.textContent='延迟 '+lat+'ms'; el.className=''; if(lat<100)el.classList.add('ping-good'); else if(lat<300)el.classList.add('ping-medium'); else el.classList.add('ping-bad'); return res.json(); } }).then(d=>{ if(d&&d.online!==undefined) document.getElementById('onlineCount').textContent='在线 '+d.online; updateOnlineStatus(d); }).catch(()=>{ document.getElementById('pingDisplay').textContent='延迟 --ms'; }); }
+function startLatencyMonitoring(){ if(latencyInterval)clearInterval(latencyInterval); checkLatency(); latencyInterval=setInterval(checkLatency,30000); }
+function stopLatencyMonitoring(){ if(latencyInterval)clearInterval(latencyInterval); }
+function updateOnlineStatus(d){ if(!d)return; document.getElementById('homeOnline').innerHTML='在线：'+d.online+' 人 | 游戏中：'+(d.in_game||0); }
+function updateHomeProgress(input){ document.getElementById('homeCharCount').textContent=input.value.length; document.getElementById('homeProgressBar').style.width=(input.value.length/input.maxLength*100)+'%'; }
+function saveNickname(){ const val=document.getElementById('nicknameInput').value.trim(); if(!val){showToast('请输入名字','error');return;} document.getElementById('identityTitle').textContent=val; localStorage.setItem('turing_nickname',val); document.getElementById('inputSection').style.display='none'; document.getElementById('changeNickRow').style.display='flex'; _saveLog('save_nickname',{nickname:val}); showToast('名字已保存','success'); _requestRecoveryCode(); }
+function _getNickname(){
+    var stored = localStorage.getItem('turing_nickname');
+    if(stored) return stored;
+    var inp = document.getElementById('nicknameInput');
+    if(inp && inp.value.trim()) return inp.value.trim();
+    return '';
+}
+function _requestRecoveryCode(){
+    var uid = localStorage.getItem('turing_user_id')||'';
+    if(uid && ws && ws.readyState === WebSocket.OPEN){
+        ws.send(JSON.stringify({type:'get_recovery_code', user_id: uid}));
+    }
+}
+var allStickers=[];
+function loadStickers(){ fetch('/api/stickers').then(r=>r.json()).then(d=>{ allStickers=d.stickers||[]; var pop=document.getElementById('stickerPopup'); pop.innerHTML=''; allStickers.forEach(s=>{ var wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;align-items:center;cursor:pointer'; var img=document.createElement('img'); img.src='/static/stickers/'+s.filename; img.title=s.description||s.filename; img.onclick=function(){sendSticker(s.filename);}; wrap.appendChild(img); if(s.description){var desc=document.createElement('div');desc.className='sticker-desc';desc.textContent=s.description;wrap.appendChild(desc);} pop.appendChild(wrap); }); }).catch(()=>{}); }
+function toggleStickerPopup(){ var pop=document.getElementById('stickerPopup'); var ovl=document.getElementById('stickerOverlay'); if(pop.classList.contains('active')){pop.classList.remove('active');ovl.style.display='none';}else{loadStickers();pop.classList.add('active');ovl.style.display='block';} }
+function sendSticker(filename){
+    var active=document.querySelector('.page.active'); if(!active)return;
+    const uid=localStorage.getItem('turing_user_id')||'', nickname=localStorage.getItem('turing_nickname')||'', msgId=generateMsgId(); trackSentMsg(msgId);
+    if(active.id==='gamePage'){
+        stopMsgTimer();
+        ws.send(JSON.stringify({type:'chat_sticker',filename,user_id:uid,sender:nickname,client_msg_id:msgId}));
+        appendChatMessage('self','我',null,filename);
+    }else if(active.id==='multiGamePage'){
+        stopMsgTimer();
+        ws.send(JSON.stringify({type:'multi_sticker',filename,user_id:uid,sender:nickname,client_msg_id:msgId}));
+        var mcm=document.getElementById('multiChatMessages'); var mcd=document.createElement('div'); mcd.className='chat-message self sticker-only'; mcd.innerHTML='<div class="chat-message-sender">我</div><img class="chat-sticker" src="/static/stickers/'+escapeHtml(filename)+'" alt="sticker">'; mcm.appendChild(mcd); mcm.scrollTop=mcm.scrollHeight;
+    }
+    toggleStickerPopup();
+}
+function connect(){
+    const protocol=window.location.protocol==='https:'?'wss:':'ws:';
+    ws=new WebSocket(`${protocol}//${window.location.host}/ws`);
+    ws.onopen=()=>{ console.log('WS 已连接'); stopReconnect(); reconnectDelay=1000; startLatencyMonitoring(); startHeartbeat(); _patchWsLog(); _saveLog('ws_connected'); showToast('连接已恢复','success'); fetchAnnounce(); fetchPendingWarnings(); _requestRecoveryCode(); const token=localStorage.getItem('turing_admin_token'); if(token&&ws.readyState===WebSocket.OPEN){ ws.send(JSON.stringify({type:'admin_login',token,user_id:localStorage.getItem('turing_user_id')||'',fingerprint:getFingerprint(),nickname:localStorage.getItem('turing_nickname')||''})); } };
+    ws.onmessage=(e)=>{ refreshLastMsgTime(); handleMessage(JSON.parse(e.data)); };
+    ws.onclose=()=>{ stopLatencyMonitoring(); stopHeartbeat(); _saveLog('ws_disconnected'); showToast('连接已断开，正在重连...','error'); scheduleReconnect(); };
+    ws.onerror=()=>{ _saveLog('ws_error'); };
+}
+let reconnectTimer=null,reconnectDelay=1000;
+function scheduleReconnect(){ if(reconnectTimer)return; reconnectTimer=setTimeout(()=>{reconnectTimer=null; if(ws&&ws.readyState===WebSocket.OPEN){reconnectDelay=1000;return;} connect(); reconnectDelay=Math.min(reconnectDelay*2,15000); },reconnectDelay); }
+function stopReconnect(){ if(reconnectTimer){clearInterval(reconnectTimer);reconnectTimer=null;} }
+function handleMessage(data){
+    const myUserId=localStorage.getItem('turing_user_id')||'';
+    switch(data.type){
+        case 'in_queue': showPage('queuePage'); break;
+        case 'left_queue': showPage('homePage'); break;
+        case 'matched':
+            _saveLog('matched',{room:data.room_id,opponent:data.opponent_name}); roomId=data.room_id; opponentName=data.opponent_name; canJudge=false; judgmentRequired=false; gameEnded=false;
+            document.getElementById('adminInfoBar').style.display='none';
+            if(data.admin_info){ document.getElementById('adminInfoBar').style.display='flex'; document.getElementById('adminOppInfo').innerHTML='对方：<b>'+data.admin_info.name+'</b> | IP：<b>'+data.admin_info.ip+'</b> | ID：<b style="font-size:0.7rem;font-family:monospace">'+(data.admin_info.user_id||'-').slice(0,12)+'</b> | 身份：<b style="color:'+(data.admin_info.is_ai?'var(--primary)':'var(--neutral)')+'">'+(data.admin_info.is_ai?'AI':'真人')+'</b>'; }
+            document.getElementById('opponentName').textContent=opponentName||'对手';
+            document.getElementById('judgeBtn').disabled=true; document.getElementById('judgeBtn').className='judge-btn'; document.getElementById('judgeBtn').textContent='做出判断';
+            document.getElementById('judgeHint').textContent='双方各发送至少一条消息后即可判断';
+            document.getElementById('chatMessages').innerHTML='';
+            startMsgTimer(60); startTotalTimer(600);
+            document.getElementById('judgmentTimerBar').classList.remove('visible');
+            showPage('gamePage'); break;
+        case 'chat_message': if(isOwnEcho(data)) return; appendChatMessage('opponent',data.sender||opponentName,escapeHtml(data.content),null); break;
+        case 'chat_sticker': if(isOwnEcho(data)) return; appendChatMessage('opponent',data.sender||opponentName,null,data.filename); break;
+        case 'can_judge': if(!judgmentRequired&&!gameEnded){ document.getElementById('judgeBtn').disabled=false; document.getElementById('judgeBtn').className='judge-btn enabled'; document.getElementById('judgeHint').textContent='双方都已发言，可点击下方按钮做出判断'; } break;
+        case 'judgment_required': judgmentRequired=true; document.getElementById('judgeBtn').disabled=false; document.getElementById('judgeBtn').className='judge-btn enabled'; document.getElementById('judgeBtn').textContent='对方已判断，请你也做出判断'; document.getElementById('judgeHint').textContent=(data.judger_name||'对方')+' 已做出判断，你有 60 秒时间'; startJudgmentTimer(data.timeout); break;
+        case 'judgment_waiting': judgmentRequired=true; document.getElementById('judgeBtn').disabled=true; document.getElementById('judgeBtn').className='judge-btn'; document.getElementById('judgeBtn').textContent='已判断，等待对方...'; document.getElementById('judgeHint').textContent='已做出判断，等待对方在 60 秒内回应'; startJudgmentTimer(data.timeout); break;
+        case 'game_result': _saveLog('game_result',{verdict:data.verdict}); gameEnded=true; stopMsgTimer(); stopJudgmentTimer(); stopTotalTimer(); showResult(data); break;
+        case 'waiting': showPage('queuePage'); break;
+        case 'opponent_disconnected':
+            if(!gameEnded){
+                var graceSec=data.grace_seconds||15;
+                showToast(data.message||('对手断开连接，等待'+graceSec+'秒重连...'),'error');
+                document.getElementById('msgTimeoutBar').textContent='对手断开，等待重连 ('+graceSec+'s)';
+                document.getElementById('msgTimeoutBar').className='visible msg-timeout urgent';
+            }
+            break;
+        case 'opponent_reconnected':
+            if(!gameEnded){
+                showToast(data.message||'对手已重连！','success');
+                document.getElementById('msgTimeoutBar').className='';
+            }
+            break;
+        case 'reconnected':
+            if(!gameEnded){
+                roomId=data.room_id; opponentName=data.opponent_name;
+                showPage('gamePage');
+                showToast('重连成功！游戏继续','success');
+            }
+            break;
+        case 'returned_home': showPage('homePage'); break;
+        case 'nickname_changed': localStorage.setItem('turing_nickname',data.new_nickname); document.getElementById('identityTitle').textContent=data.new_nickname; showToast(data.message||'昵称修改成功','success'); break;
+        case 'maintenance': if(data.enabled){showMaintenancePage(data.message||'系统维护中');} break;
+        case 'error': if(data.message){ if(data.ban_user_id){ var rsn=data.ban_reason||'违规行为'; var exp=data.ban_expires||'永久封禁'; showToast('你已被封禁\n理由：'+rsn+'\n'+exp+'\n如有问题请加群','error'); document.getElementById('nicknameInput').disabled=true; document.getElementById('nicknameInput').placeholder='账号异常，无法匹配'; var hBtn=document.querySelector('.home-actions .btn-primary'); if(hBtn){hBtn.disabled=true;hBtn.textContent='已被封禁';} } else if(data.need_recovery){ showToast(data.message,'error'); document.getElementById('recoveryToggleLink').style.display='inline'; document.getElementById('recoveryLoginRow').style.display='flex'; } else showToast(data.message,'error'); } break;
+        case 'report_submitted': showToast(data.message||'举报已提交','success'); closeReportModal(); break;
+        case 'admin_logged_in': isAdmin=true; if(data.admin_token) localStorage.setItem('turing_admin_token',data.admin_token); _saveLog('admin_logged_in'); showToast(data.message||'管理员身份已激活','success'); document.getElementById('watchBtn').style.display='inline-block'; break;
+        case 'admin_ban_ok': showToast(data.message||'封禁成功','success'); break;
+        case 'watch_warn': showToast(data.message || '管理员警告', 'error'); onWatchWarnMsg(data); break;
+        case 'watch_list': renderWatchList(data.rooms||[]); break;
+        case 'watch_started': onWatchStarted(data); break;
+        case 'watch_chat': onWatchChat(data); break;
+        case 'watch_sticker': onWatchSticker(data); break;
+        case 'watch_stopped': onWatchStopped(); break;
+        case 'watch_ended': onWatchEnded(data); break;
+        case 'watch_system': onWatchSystemMsg(data); break;
+        case 'watch_ban_ok': showToast(data.message||'封禁成功','success'); break;
+        case 'watch_warn_ok': showToast(data.message||'警告已发送','success'); break;
+        case 'recovery_code':
+            if(data.code){
+                document.getElementById('recoveryCodeText').textContent = data.code;
+                document.getElementById('recoveryDisplayRow').style.display = 'block';
+                document.getElementById('recoveryLoginRow').style.display = 'none';
+                document.getElementById('recoveryToggleLink').style.display = 'none';
+            }
+            break;
+        case 'recovery_logged_in':
+            if(data.user_id){
+                var nick = data.nickname || '用户';
+                localStorage.setItem('turing_user_id', data.user_id);
+                localStorage.setItem('turing_nickname', nick);
+                document.getElementById('myUserIdLabel').textContent = data.user_id.slice(0,14);
+                document.getElementById('identityTitle').textContent = nick;
+                document.getElementById('nicknameInput').value = nick;
+                document.getElementById('inputSection').style.display = 'none';
+                document.getElementById('changeNickRow').style.display = 'flex';
+                document.getElementById('recoveryCodeText').textContent = data.code || '---';
+                document.getElementById('recoveryDisplayRow').style.display = 'block';
+                document.getElementById('recoveryLoginRow').style.display = 'none';
+                document.getElementById('recoveryToggleLink').style.display = 'none';
+                showToast('已通过恢复码登录','success');
+            }
+            break;
+        case 'multi_waiting': showPage('multiLobbyPage'); document.getElementById('multiAdminPanel').style.display=isAdmin?'flex':'none'; document.getElementById('multiLobbyNum').textContent=data.count; if(data.countdown_seconds){ document.getElementById('multiCountdown').style.display='block'; document.getElementById('multiCountdown').textContent='即将开始 · '+data.countdown_seconds+' 秒'; } else document.getElementById('multiCountdown').style.display='none'; break;
+        case 'multi_count_update': document.getElementById('multiLobbyNum').textContent=data.count; break;
+        case 'multi_countdown': document.getElementById('multiLobbyNum').textContent=data.players; document.getElementById('multiCountdown').style.display='block'; document.getElementById('multiCountdown').textContent='即将开始 · '+data.seconds+' 秒'; break;
+        case 'multi_role_info':
+            multiInGame=true; multiMyNum=data.your_num; multiVoted=false; multiPlayerNames=data.player_names||{}; multiMyRole=data.role||'human';
+            document.getElementById('multiMyNum').textContent='#'+data.your_num+' '+(multiPlayerNames[data.your_num]||'');
+            var pl=document.getElementById('multiPlayerList'); pl.innerHTML='';
+            for(var k in multiPlayerNames){ var tag=document.createElement('span'); tag.id='multiPlayerTag_'+k; tag.style.cssText='padding:2px 8px;border-radius:10px;background:var(--bg-body);font-weight:600;white-space:nowrap'; tag.textContent='#'+k+' '+multiPlayerNames[k]; if(parseInt(k)===data.your_num) tag.style.cssText+=';border:1.5px solid var(--primary);color:var(--primary)'; pl.appendChild(tag); }
+            document.getElementById('multiChatMessages').innerHTML=''; document.getElementById('multiVoteBar').style.display='none'; showPage('multiGamePage');
+            setTimeout(function(){ showMultiRolePopup(data.identity, data.objective, data.warning, data.your_num); }, 500);
+            break;
+        case 'multi_player_left':
+            var tagLeft=document.getElementById('multiPlayerTag_'+data.num); if(tagLeft){tagLeft.style.opacity='0.4';tagLeft.textContent+=' 离线';}
+            var mplm=document.createElement('div'); mplm.style.cssText='text-align:center;font-size:0.75rem;color:var(--text-muted);padding:4px'; mplm.textContent='#'+data.num+' '+(data.name||'')+' 离开了'; document.getElementById('multiChatMessages').appendChild(mplm); break;
+        case 'multi_chat': if(isOwnEcho(data)) return; appendMultiChat(data); break;
+        case 'multi_sticker': if(isOwnEcho(data)) return; appendMultiChat(data); break;
+        case 'multi_discuss_start':
+            var db=document.getElementById('multiDiscussBanner'); db.style.display='block'; clearInterval(multiDiscussTimer); var discussLeft=data.seconds||180;
+            multiDiscussTimer=setInterval(()=>{ discussLeft--; if(discussLeft<=0){clearInterval(multiDiscussTimer);db.style.display='none';return;} db.innerHTML='讨论阶段 第'+(data.round||1)+'轮 · 剩'+discussLeft+'秒'; },1000);
+            if(data.vote_results){ var vrDiv=document.createElement('div'); vrDiv.style.cssText='text-align:center;font-size:0.8rem;color:var(--text-secondary);padding:8px;margin:4px 0;background:rgba(251,188,5,0.06);border-radius:8px;white-space:pre-line'; vrDiv.textContent=data.vote_results; document.getElementById('multiChatMessages').appendChild(vrDiv); document.getElementById('multiChatMessages').scrollTop=document.getElementById('multiChatMessages').scrollHeight; }
+            break;
+        case 'multi_vote_start':
+            clearInterval(multiDiscussTimer); document.getElementById('multiDiscussBanner').style.display='none';
+            multiVoteTimeout=data.timeout||30; var vbn=document.getElementById('multiVoteBtns'); vbn.innerHTML='';
+            var pnames=data.player_names||{};
+            for(var i2=1;i2<=data.player_count;i2++){ if(i2!==multiMyNum){ var b2=document.createElement('button'); b2.textContent='#'+i2+' '+(pnames[i2]||''); b2.style.cssText='padding:8px 14px;border:1px solid var(--border-light);border-radius:8px;background:var(--bg-body);cursor:pointer;font-weight:600;font-size:0.85rem;'; (function(num,btn){ btn.onclick=function(){ multiVote(num); btn.style.background='var(--primary)'; btn.disabled=true; var all=document.querySelectorAll('#multiVoteBtns button'); for(var ai=0;ai<all.length;ai++){ if(all[ai]!==btn) all[ai].disabled=true; } }; })(i2,b2); vbn.appendChild(b2); } }
+            document.getElementById('multiVoteBar').style.display='block'; multiVotedCount=0; document.getElementById('multiVoteTimerLabel').textContent=multiVoteTimeout+'s'; document.getElementById('multiVoteHint').textContent='0/'+(data.human_count||1)+' 人已投';
+            clearInterval(multiVoteTimer); multiVoteCountdown=multiVoteTimeout;
+            multiVoteTimer=setInterval(()=>{ multiVoteCountdown--; var tel=document.getElementById('multiVoteTimerLabel'); if(tel)tel.textContent=multiVoteCountdown+'s'; if(multiVoteCountdown<=0)clearInterval(multiVoteTimer); },1000); break;
+        case 'multi_vote_update': multiVotedCount=data.voted_count||0; var vel=document.getElementById('multiVoteHint'); if(vel)vel.textContent=multiVotedCount+'/'+(data.total_voters||1)+' 人已投'; break;
+        case 'multi_vote_ok': multiVoted=true; multiVotedCount=data.voted_count!=null?data.voted_count:1; var vel2=document.getElementById('multiVoteHint'); if(vel2)vel2.textContent=multiVotedCount+'/'+(data.total_voters||1)+' 人已投'; break;
+        case 'multi_eliminate':
+            clearInterval(multiVoteTimer); document.getElementById('multiVoteBar').style.display='none';
+            var meChat=document.getElementById('multiChatMessages');
+            if(data.vote_detail && data.vote_detail.length){
+                var vdDiv=document.createElement('div'); vdDiv.style.cssText='text-align:left;font-size:0.78rem;color:var(--text-secondary);padding:8px 12px;margin:4px 0;background:var(--bg-body);border-radius:8px;line-height:1.6';
+                var vdHtml='<div style="font-weight:600;margin-bottom:4px;color:var(--text-primary)">投票详情：</div>';
+                data.vote_detail.forEach(function(v){ vdHtml+='<div>'+escHtml(v.voter_name)+' → '+escHtml(v.target_name)+'</div>'; });
+                vdDiv.innerHTML=vdHtml; meChat.appendChild(vdDiv);
+            }
+            var meDiv=document.createElement('div'); meDiv.style.cssText='text-align:center;font-size:0.85rem;font-weight:600;padding:10px;margin:8px 0';
+            if(data.is_fake_ai){ meDiv.style.color='#FF9800'; meDiv.innerHTML='[假AI] 淘汰 #'+data.eliminated_num+' '+(data.eliminated_name||'')+' (假AI!)'; }
+            else if(data.is_ai){ meDiv.style.color='#34A853'; meDiv.innerHTML='[AI] 淘汰 #'+data.eliminated_num+' '+(data.eliminated_name||'')+' (AI)'; }
+            else { meDiv.style.color='#D93838'; meDiv.innerHTML='[真人] 淘汰 #'+data.eliminated_num+' '+(data.eliminated_name||'')+' (真人)'; }
+            meChat.appendChild(meDiv); meChat.scrollTop=meChat.scrollHeight; break;
+        case 'multi_eliminated_options':
+            var optDiv=document.createElement('div'); optDiv.style.cssText='text-align:center;padding:12px;margin:8px 0';
+            optDiv.innerHTML='<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">'+escHtml(data.message||'你已被淘汰')+'</div><button onclick="multiSpectate()" style="padding:6px 16px;margin:0 4px;border:1px solid var(--primary);border-radius:8px;background:var(--primary);color:var(--text-primary);cursor:pointer;font-weight:600;font-size:0.8rem">观战</button><button onclick="goHome()" style="padding:6px 16px;margin:0 4px;border:1px solid var(--border-light);border-radius:8px;background:var(--bg-body);cursor:pointer;font-size:0.8rem">退出</button>';
+            document.getElementById('multiChatMessages').appendChild(optDiv); document.getElementById('multiChatMessages').scrollTop=document.getElementById('multiChatMessages').scrollHeight; break;
+        case 'multi_spectate_ok': showToast(data.message||'已进入观战模式','success'); break;
+        case 'multi_result_all':
+            clearInterval(multiVoteTimer); clearInterval(multiDiscussTimer);
+            document.getElementById('multiVoteBar').style.display='none'; document.getElementById('multiDiscussBanner').style.display='none';
+            var ov2=document.getElementById('multiRevealOverlay'); ov2.style.display='flex';
+            var wins=data.verdict&&(data.verdict.indexOf('人类胜利')!==-1);
+            document.getElementById('multiRevealEmoji').textContent=wins?'WIN':'LOSE';
+            document.getElementById('multiRevealVerdict').style.display='block'; document.getElementById('multiRevealVerdict').textContent=data.verdict||'游戏结束';
+            setTimeout(()=>{ ov2.style.display='none'; showPage('multiResultPage'); },3000);
+            document.getElementById('multiResultEmoji').textContent=wins?'WIN':'LOSE'; document.getElementById('multiResultTitle').textContent=data.verdict||'游戏结束';
+            var rdHtml='共'+data.round+'轮<br>';
+            if(data.all_players && data.all_players.length){
+                rdHtml+='<div style="margin-top:12px;text-align:left;font-size:0.8rem;line-height:1.8">';
+                data.all_players.forEach(function(p){
+                    var roleLabel=p.role==='ai'?'AI':(p.role==='fake_ai'?'假AI':'人类');
+                    var roleColor=p.role==='ai'?'#34A853':(p.role==='fake_ai'?'#FF9800':'var(--primary)');
+                    var elimTag=p.eliminated?' <span style="color:var(--text-muted)">(已淘汰)</span>':'';
+                    rdHtml+='<div><span style="color:'+roleColor+';font-weight:600">'+roleLabel+'</span> #'+p.num+' '+escHtml(p.display_name)+(p.original_nickname?' <span style="color:var(--text-muted);font-size:0.7rem">('+escHtml(p.original_nickname)+')</span>':'')+elimTag+'</div>';
+                });
+                rdHtml+='</div>';
+            }
+            document.getElementById('multiResultDetail').innerHTML=rdHtml;
+            document.getElementById('multiVoteSummary').textContent=data.time_up?'15分钟到了':(data.fake_ai_win?'假AI骗过了所有人':'游戏结束');
+            break;
+        case 'multi_error': showToast(data.message,'error'); break;
+        case 'announce': showAnnounce(data.content||''); break;
+        case 'pong': break;
+        case 'warning': showToast('管理员警告：'+data.content,'error'); _saveLog('warning_received',{content:data.content}); break;
+    }
+}
+function joinQueue(){
+    var nickVal=_getNickname();
+    if(!nickVal){
+        var inp = document.getElementById('nicknameInput');
+        var val = inp && inp.value.trim();
+        if(val){
+            localStorage.setItem('turing_nickname', val);
+            document.getElementById('identityTitle').textContent = val;
+            document.getElementById('inputSection').style.display = 'none';
+            nickVal = val;
+        } else {
+            showToast('请先设置名字','error');
+            return;
+        }
+    }
+    _saveLog('join_queue',{nickname:nickVal});
+    roomId=null;canJudge=false;judgmentRequired=false;gameEnded=false;
+    document.getElementById('judgeBtn').disabled=true; document.getElementById('judgeBtn').className='judge-btn'; document.getElementById('judgeBtn').textContent='做出判断';
+    const nick=nickVal; let sent=false; const uid=localStorage.getItem('turing_user_id')||'';
+    const send_join=()=>{if(sent)return;sent=true;ws.send(JSON.stringify({type:'join_queue',nickname:nick,user_id:uid}));};
+    if(!ws||ws.readyState!==WebSocket.OPEN){ if(!ws||ws.readyState===WebSocket.CLOSED)connect(); const check=setInterval(()=>{if(ws&&ws.readyState===WebSocket.OPEN&&!sent){clearInterval(check);send_join();}},200); return; }
+    send_join();
+}
+function leaveQueue(){ _saveLog('leave_queue'); if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'leave_queue'})); closeMiniChat(); showPage('homePage'); }
+function sendMessage(){
+    const input=document.getElementById('chatInput'); const content=input.value.trim(); if(!content||!roomId||gameEnded)return;
+    stopMsgTimer(); const msgId=generateMsgId(); trackSentMsg(msgId);
+    appendChatMessage('self','我',escapeHtml(content),null); input.value='';
+    ws.send(JSON.stringify({type:'chat_message',content,user_id:localStorage.getItem('turing_user_id')||'',sender:localStorage.getItem('turing_nickname')||'',client_msg_id:msgId}));
+}
+function appendChatMessage(role,sender,content,stickerFile){
+    const msgs=document.getElementById('chatMessages'); const div=document.createElement('div'); div.className='chat-message '+role+(stickerFile?' sticker-only':'');
+    if(stickerFile) div.innerHTML=(sender?'<div class="chat-message-sender">'+escapeHtml(sender)+'</div>':'')+'<img class="chat-sticker" src="/static/stickers/'+escapeHtml(stickerFile)+'" alt="sticker">';
+    else div.innerHTML='<div class="chat-message-sender">'+escapeHtml(sender)+'</div><div class="chat-message-bubble">'+escapeHtml(content)+'</div>';
+    msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+function openJudgeModal(){ if(document.getElementById('judgeBtn').disabled)return; document.getElementById('judgeModal').classList.add('visible'); }
+function closeJudgeModal(){ document.getElementById('judgeModal').classList.remove('visible'); }
+function makeJudgment(guess){ closeJudgeModal(); document.getElementById('judgeBtn').disabled=true; document.getElementById('judgeBtn').className='judge-btn'; document.getElementById('judgeBtn').textContent='已判断，等待对方...'; ws.send(JSON.stringify({type:'make_judgment',guess})); }
+let msgTimerInterval=null;
+function startMsgTimer(seconds){ stopMsgTimer(); let remaining=seconds; const el=document.getElementById('msgTimeoutBar'); el.classList.add('visible','msg-timeout'); const upd=()=>{ el.textContent='首发消息 · 剩 '+remaining+' 秒'; if(remaining<=15)el.classList.add('urgent'); }; upd(); msgTimerInterval=setInterval(()=>{ remaining--; if(remaining<=0){ stopMsgTimer(); if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'msg_timeout'})); return; } upd(); },1000); }
+function stopMsgTimer(){ if(msgTimerInterval){clearInterval(msgTimerInterval);msgTimerInterval=null;} const el=document.getElementById('msgTimeoutBar'); el.classList.remove('visible','urgent','msg-timeout'); }
+let totalTimerInterval=null;
+function startTotalTimer(seconds){ stopTotalTimer(); let remaining=seconds; const el=document.getElementById('totalTimerBar'); el.classList.add('visible','total'); const upd=()=>{ const m=Math.floor(remaining/60),s=remaining%60; el.textContent='总剩余 '+m+':'+String(s).padStart(2,'0'); if(remaining<=60)el.classList.add('urgent'); }; upd(); totalTimerInterval=setInterval(()=>{ remaining--; if(remaining<0){stopTotalTimer();return;} upd(); },1000); }
+function stopTotalTimer(){ if(totalTimerInterval){clearInterval(totalTimerInterval);totalTimerInterval=null;} const el=document.getElementById('totalTimerBar'); el.classList.remove('visible','urgent','total'); }
+let judgmentTimerInterval=null;
+function startJudgmentTimer(seconds){ stopJudgmentTimer(); let remaining=seconds||60; const el=document.getElementById('judgmentTimerBar'); el.classList.add('visible','judge-timeout'); const upd=()=>{ el.textContent='判断倒计时 '+remaining+'s'; if(remaining<=10)el.classList.add('urgent'); }; upd(); judgmentTimerInterval=setInterval(()=>{ remaining--; if(remaining<=0){stopJudgmentTimer();return;} upd(); },1000); }
+function stopJudgmentTimer(){ if(judgmentTimerInterval){clearInterval(judgmentTimerInterval);judgmentTimerInterval=null;} const el=document.getElementById('judgmentTimerBar'); el.classList.remove('visible','urgent','judge-timeout'); }
+function showResult(data){
+    stopMsgTimer(); stopJudgmentTimer(); stopTotalTimer();
+    const isWin=data.result==='win';
+    document.getElementById('resultSvgWin').style.display = isWin ? 'block' : 'none';
+    document.getElementById('resultSvgLose').style.display = isWin ? 'none' : 'block';
+    document.getElementById('resultTitle').textContent=isWin?'恭喜，你赢了':'很遗憾，你输了';
+    document.getElementById('resultTitle').className='result-title '+(data.result||'lose');
+    document.getElementById('resultReason').textContent=data.reason||'';
+    document.getElementById('resultBadge').textContent=data.opponent_was_ai?'对方是 AI':'对方是真人';
+    const guessBox=document.getElementById('opponentGuessBox'), guessEl=document.getElementById('opponentGuess');
+    if(data.opponent_guess&&data.opponent_guess!=='未判断'){ guessBox.style.display='block'; guessEl.textContent=data.opponent_guess==='ai'?'AI':(data.opponent_guess==='timeout'?'超时未判断':'真人'); }
+    else if(data.opponent_guess==='未判断'){ guessBox.style.display='block'; guessEl.textContent='对方尚未做出判断'; }
+    else guessBox.style.display='none';
+    showPage('resultPage');
+}
+function joinMulti(){ showToast('多人模式暂不可用，敬请期待','error'); return; var nickVal=_getNickname(); if(!nickVal){ var inp=document.getElementById('nicknameInput'); var val=inp&&inp.value.trim(); if(val){localStorage.setItem('turing_nickname',val);document.getElementById('identityTitle').textContent=val;document.getElementById('inputSection').style.display='none';nickVal=val;}else{showToast('请先设置名字','error');return;}} showPage('multiLobbyPage'); document.getElementById('multiAdminPanel').style.display=isAdmin?'flex':'none'; document.getElementById('multiLobbyNum').textContent='...'; const send=()=>{if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"multi_join",nickname:nickVal}));}; if(!ws||ws.readyState!==WebSocket.OPEN){if(!ws||ws.readyState===WebSocket.CLOSED)connect(); const check=setInterval(()=>{if(ws&&ws.readyState===WebSocket.OPEN){clearInterval(check);send();}},200); return; } send(); }
+function leaveMulti(){ multiSpectating=false; if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"multi_leave"})); showPage('homePage'); }
+function sendMultiChat(){ const inp=document.getElementById("multiChatInput"); const text=inp.value.trim(); if(!text||multiSpectating)return; inp.value=""; const msgId=generateMsgId(); trackSentMsg(msgId); var mcm=document.getElementById('multiChatMessages'); var mcd=document.createElement('div'); mcd.className='chat-message self'; mcd.innerHTML='<div class="chat-message-sender">我</div><div class="chat-message-bubble">'+escapeHtml(text)+'</div>'; mcm.appendChild(mcd); mcm.scrollTop=mcm.scrollHeight; ws.send(JSON.stringify({type:"multi_chat",content:text,user_id:localStorage.getItem('turing_user_id')||'',sender:localStorage.getItem('turing_nickname')||'',client_msg_id:msgId})); }
+function appendMultiChat(data){ if(isOwnEcho(data))return; var mcm=document.getElementById('multiChatMessages'); var mcd=document.createElement('div'); if(data.is_system){ mcd.style.cssText='text-align:center;font-size:0.75rem;color:var(--text-muted);padding:4px'; mcd.textContent='#'+data.sender_num+' '+escHtml(data.sender_name||'')+': '+escHtml(data.content||''); } else { mcd.className='chat-message '+(data.sender_num===multiMyNum?'self':'opponent'); if(data.sticker||data.filename){ mcd.className+=' sticker-only'; mcd.innerHTML='<div class="chat-message-sender">#'+data.sender_num+' '+escHtml(data.sender_name||'')+'</div><img class="chat-sticker" src="/static/stickers/'+(data.sticker||data.filename)+'" alt="sticker">'; } else { mcd.innerHTML='<div class="chat-message-sender">#'+data.sender_num+' '+escHtml(data.sender_name||'')+'</div><div class="chat-message-bubble">'+escHtml(data.content)+'</div>'; } } mcm.appendChild(mcd); mcm.scrollTop=mcm.scrollHeight; }
+function multiVote(targetNum){ if(multiVoted)return; ws.send(JSON.stringify({type:"multi_vote",target:targetNum})); }
+function multiSpectate(){ multiSpectating=true; ws.send(JSON.stringify({type:"multi_spectate"})); }
+
+/* 聊天大厅逻辑 */
+let chatLobbyWs = null, chatLobbyMyUserId = '', chatLobbyMyNick = '', chatLobbyIsAdmin = false, chatLobbyMuted = false;
+let chatLobbyReplyTo = null, chatLobbyReplySender = '';
+let chatLobbyPendingAts = [];
+function enterChatLobby(){
+    var nick = _getNickname();
+    if(!nick){ showToast('请先设置昵称','error'); return; }
+    chatLobbyMyUserId = localStorage.getItem('turing_user_id') || '';
+    chatLobbyMyNick = nick;
+    chatLobbyIsAdmin = isAdmin || !!(localStorage.getItem('turing_admin_token'));
+    chatLobbyMuted = false;
+    showPage('chatLobbyPage');
+    if(chatLobbyIsAdmin) document.getElementById('chatLobbyWarnBtn').style.display = '';
+    var inp = document.getElementById('chatLobbyInput');
+    if(inp){ inp.disabled = false; inp.placeholder = '输入消息...'; }
+    chatLobbyPendingAts = [];
+    updateChatLobbyNotiBadge();
+    connectChatLobby();
+}
+function connectChatLobby(){
+    if(chatLobbyWs && chatLobbyWs.readyState <= 1) return;
+    var proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    chatLobbyWs = new WebSocket(proto + '://' + location.host + '/ws/chat大厅');
+    chatLobbyWs.onopen = function(){
+        chatLobbyWs.send(JSON.stringify({type:'join', user_id:chatLobbyMyUserId, nickname:chatLobbyMyNick, admin_token:localStorage.getItem('turing_admin_token')||localStorage.getItem('admin_token')||''}));
+        chatLobbyWs.send(JSON.stringify({type:'get_history', limit:50}));
+    };
+    chatLobbyWs.onmessage = function(e){
+        var d = JSON.parse(e.data);
+        handleChatLobbyMsg(d);
+    };
+    chatLobbyWs.onclose = function(){
+        if(document.getElementById('chatLobbyPage').classList.contains('active')){
+            setTimeout(connectChatLobby, 3000);
+        }
+    };
+}
+function handleChatLobbyMsg(d){
+    if(d.type === 'joined'){
+        var onc = document.getElementById('chatLobbyOnlineCount');
+        if(onc) onc.textContent = '在线: ' + d.online_count;
+        var oncMini = document.getElementById('miniChatOnline');
+        if(oncMini) oncMini.textContent = '在线: ' + d.online_count;
+    } else if(d.type === 'history'){
+        var el = document.getElementById('chatLobbyMessages');
+        if(el){ el.innerHTML = '';
+        (d.messages || []).forEach(function(m){ renderChatLobbyMsg(m, true); });
+        el.scrollTop = el.scrollHeight; }
+        // 同步更新迷你聊天记录
+        var mel = document.getElementById('miniChatMessages');
+        if(mel){
+            while(mel.firstChild){ mel.removeChild(mel.firstChild); }
+            (d.messages || []).forEach(function(m){ renderMiniChatMsg(m); });
+            if((d.messages||[]).length === 0){
+                var emptyDiv = document.createElement('div');
+                emptyDiv.className = 'mini-chat-empty';
+                emptyDiv.textContent = '暂无消息';
+                mel.appendChild(emptyDiv);
+            }
+            scrollMiniChatToBottom();
+        }
+    } else if(d.type === 'chat'){
+        renderChatLobbyMsg(d, false);
+        renderMiniChatMsg(d);
+        checkChatLobbyNotify(d);
+    } else if(d.type === 'recalled'){
+        var rmsg = document.getElementById('clmsg_' + d.msg_id);
+        if(rmsg) rmsg.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem;">' + escapeHtml(d.nickname || '用户') + ' 撤回了一条消息</span>';
+    } else if(d.type === 'admin_recalled'){
+        var amsg = document.getElementById('clmsg_' + d.msg_id);
+        if(amsg) amsg.innerHTML = '<span style="color:var(--error);font-size:0.8rem;">管理员撤回了' + escapeHtml(d.original_nickname || '用户') + '的一条消息</span>';
+    } else if(d.type === 'user_join'){
+        var onc2 = document.getElementById('chatLobbyOnlineCount');
+        if(onc2) onc2.textContent = '在线: ' + d.online_count;
+        var oncMini2 = document.getElementById('miniChatOnline');
+        if(oncMini2) oncMini2.textContent = '在线: ' + d.online_count;
+        showToast(d.nickname + ' 进入了聊天大厅', 'info');
+    } else if(d.type === 'muted'){
+        showToast(d.message || '你已被禁言', 'error');
+        chatLobbyMuted = true;
+        var inp = document.getElementById('chatLobbyInput');
+        if(inp){ inp.disabled = true; inp.placeholder = '你已被禁言'; }
+        var mini = document.getElementById('miniChatInput');
+        if(mini){ mini.disabled = true; mini.placeholder = '你已被禁言'; }
+    } else if(d.type === 'user_muted'){
+        showToast(d.from + ' 禁言了 ' + d.nickname + (d.reason?': '+d.reason:''), 'info');
+    } else if(d.type === 'user_leave'){
+        var onc3 = document.getElementById('chatLobbyOnlineCount');
+        if(onc3) onc3.textContent = '在线: ' + d.online_count;
+        var oncMini3 = document.getElementById('miniChatOnline');
+        if(oncMini3) oncMini3.textContent = '在线: ' + d.online_count;
+    } else if(d.type === 'online_list'){
+        chatLobbyRenderOnlineList(d.online_list || []);
+    } else if(d.type === 'at_mention' || d.type === 'reply_notify'){
+        var key = d.msg_id || '';
+        if(!isMsgVisibleOnScreen(key)){
+            chatLobbyPendingAts.push({msg_id:key, from:d.from, type:d.type, content:d.content||''});
+            showToast(d.from + (d.type==='at_mention'?' 艾特了你':' 回复了你'), 'info');
+        }
+        updateChatLobbyNotiBadge();
+    } else if(d.type === 'warning'){
+        showToast('管理员警告: ' + d.message, 'error');
+        renderMiniChatMsg({type:'warning', message:d.message});
+    } else if(d.type === 'kicked'){
+        showToast(d.message, 'error');
+        leaveChatLobby();
+    } else if(d.type === 'messages_cleared'){
+        var cmsgs = document.getElementById('chatLobbyMessages');
+        if(cmsgs) cmsgs.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:32px;">' + escapeHtml(d.message||'消息已被清空') + '</div>';
+        var mm = document.getElementById('miniChatMessages');
+        if(mm){
+            while(mm.firstChild){ mm.removeChild(mm.firstChild); }
+            var emptyDiv = document.createElement('div');
+            emptyDiv.className = 'mini-chat-empty';
+            emptyDiv.textContent = '消息已被清空';
+            mm.appendChild(emptyDiv);
+        }
+    } else if(d.type === 'report_ok'){
+        showToast(d.message || '举报已提交', 'success');
+    } else if(d.type === 'ban_ok'){
+        showToast(d.message, 'success');
+    } else if(d.type === 'error'){
+        showToast(d.message, 'error');
+    }
+}
+function renderChatLobbyMsg(d, isHistory){
+    var el = document.getElementById('chatLobbyMessages');
+    var wrapper = document.createElement('div');
+    wrapper.id = 'clmsg_' + d.msg_id;
+    // 修复：强制转为字符串比对，防止数据类型不匹配导致错位
+    // 增加后备匹配逻辑：如果本地昵称和消息发送者昵称相同，也判定为自身消息，以防在历史记录加载过快时匹配失败
+    var isSelf = String(d.user_id) === String(chatLobbyMyUserId) || (d.nickname && chatLobbyMyNick && d.nickname === chatLobbyMyNick);
+    wrapper.className = 'cl-msg-wrapper ' + (isSelf ? 'cl-self' : 'cl-other');
+    var replyHtml = '';
+    if(d.reply_to){
+        var replyContent = escapeHtml(d.reply_content || '').slice(0, 30);
+        var replySender = escapeHtml(d.reply_sender || '');
+        replyHtml = '<div class="cl-msg-reply-ref" onclick="chatLobbyJumpToMsg(\''+escapeHtml(d.reply_to)+'\')">回复 '+(replySender?replySender:'消息')+(replyContent?': '+replyContent:'')+'</div>';
+    }
+    var content = escapeHtml(d.content || '');
+    content = content.replace(/@(\S+)/g, '<span style="color:#1967D2;font-weight:600;">@$1</span>');
+    var senderHtml = '<div class="cl-msg-sender">' + escapeHtml(d.nickname || '?') + '</div>';
+    var timeHtml = '<div class="cl-msg-time">' + escapeHtml(d.created_at || '') + '</div>';
+    if(d.msg_type === 'sticker'){
+        wrapper.innerHTML = replyHtml + senderHtml + '<img class="cl-sticker-img" src="/static/stickers/'+escapeHtml(d.content)+'" alt="sticker">' + timeHtml;
+    } else {
+        wrapper.innerHTML = replyHtml + senderHtml + '<div class="cl-msg-bubble">' + content + '</div>' + timeHtml;
+    }
+    wrapper.addEventListener('contextmenu', function(e){ e.preventDefault(); showChatLobbyMenu(e, d); });
+    wrapper.addEventListener('touchstart', function(e){
+        var t = this;
+        t._longPressTimer = setTimeout(function(){ showChatLobbyMenu(e, d); }, 500);
+    });
+    wrapper.addEventListener('touchend', function(){ clearTimeout(this._longPressTimer); });
+    wrapper.addEventListener('touchmove', function(){ clearTimeout(this._longPressTimer); });
+    el.appendChild(wrapper);
+    if(!isHistory) el.scrollTop = el.scrollHeight;
+}
+function showChatLobbyMenu(e, d){
+    var menu = document.getElementById('chatLobbyContextMenu');
+    var isSelf = d.user_id === chatLobbyMyUserId;
+    var html = '';
+    html += '<div onclick="chatLobbyReply(\''+escapeHtml(d.msg_id)+'\',\''+escapeHtml(d.nickname)+'\')" style="padding:10px 16px;cursor:pointer;font-size:0.85rem;border-bottom:1px solid var(--border-light);">回复</div>';
+    html += '<div onclick="chatLobbyCopy(\''+escapeHtml(d.msg_id)+'\')" style="padding:10px 16px;cursor:pointer;font-size:0.85rem;border-bottom:1px solid var(--border-light);">复制</div>';
+    if(isSelf){
+        html += '<div onclick="chatLobbyRecall(\''+escapeHtml(d.msg_id)+'\')" style="padding:10px 16px;cursor:pointer;font-size:0.85rem;border-bottom:1px solid var(--border-light);color:var(--error);">撤回</div>';
+    } else if(chatLobbyIsAdmin){
+        html += '<div onclick="chatLobbyRecall(\''+escapeHtml(d.msg_id)+'\')" style="padding:10px 16px;cursor:pointer;font-size:0.85rem;border-bottom:1px solid var(--border-light);color:var(--error);">撤回(管理员)</div>';
+    }
+    if(!isSelf){
+        html += '<div onclick="chatLobbyReport(\''+escapeHtml(d.msg_id)+'\',\''+escapeHtml(d.nickname)+'\',\''+escapeHtml(d.content)+'\')" style="padding:10px 16px;cursor:pointer;font-size:0.85rem;color:var(--error);">举报</div>';
+    }
+    menu.innerHTML = html;
+    menu.style.display = 'block';
+    var cx = e.touches ? e.touches[0].clientX : e.clientX;
+    var cy = e.touches ? e.touches[0].clientY : e.clientY;
+    menu.style.left = Math.min(cx, window.innerWidth - 140) + 'px';
+    menu.style.top = Math.min(cy, window.innerHeight - 150) + 'px';
+    setTimeout(function(){ document.addEventListener('click', hideChatLobbyMenu, {once:true}); }, 100);
+}
+function hideChatLobbyMenu(){ document.getElementById('chatLobbyContextMenu').style.display = 'none'; }
+function chatLobbyReply(msgId, nickname){ hideChatLobbyMenu(); chatLobbyReplyTo = msgId; chatLobbyReplySender = nickname; document.getElementById('chatLobbyReplyBar').style.display = 'flex'; document.getElementById('chatLobbyReplyInfo').textContent = '回复 ' + nickname; document.getElementById('chatLobbyInput').focus(); }
+function cancelChatReply(){ chatLobbyReplyTo = null; document.getElementById('chatLobbyReplyBar').style.display = 'none'; }
+function chatLobbyCopy(msgId){ hideChatLobbyMenu(); var el = document.getElementById('clmsg_' + msgId); if(el) navigator.clipboard.writeText(el.dataset.content || '').then(function(){ showToast('已复制','success'); }); }
+function chatLobbyRecall(msgId){ hideChatLobbyMenu(); if(chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){ chatLobbyWs.send(JSON.stringify({type:'recall', msg_id:msgId})); } }
+function chatLobbyReport(msgId, nickname, content){ hideChatLobbyMenu(); var reason = prompt('举报 ' + nickname + ' 的消息，输入理由：'); if(reason && chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){ chatLobbyWs.send(JSON.stringify({type:'report', msg_id:msgId, reason:reason + ' | 原文:' + (content||'').slice(0,50)})); } }
+function chatLobbyBanUser(userId, nickname){ var reason = prompt('封禁 ' + nickname + '，输入理由：'); if(!reason) return; var duration = prompt('封禁时长（如 1天、7天、永久）：', '1天'); if(!duration) return; if(chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){ chatLobbyWs.send(JSON.stringify({type:'ban_user', target_user_id:userId, target_nickname:nickname, reason:reason, duration:duration})); } }
+function chatSendWarn(){ var msg = prompt('发送全局警告：'); if(msg && chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){ chatLobbyWs.send(JSON.stringify({type:'warn', message:msg})); } }
+function sendChatLobbyMsg(){
+    if(chatLobbyMuted){ showToast('你已被禁言', 'error'); return; }
+    var inp = document.getElementById('chatLobbyInput');
+    var text = inp.value.trim();
+    if(!text || !chatLobbyWs || chatLobbyWs.readyState !== WebSocket.OPEN) return;
+    var msgId = 'cl_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    chatLobbyWs.send(JSON.stringify({type:'chat', content:text, msg_id:msgId, reply_to:chatLobbyReplyTo||''}));
+    inp.value = '';
+    cancelChatReply();
+    document.getElementById('chatLobbyAtPopup').style.display = 'none';
+}
+function toggleChatLobbySticker(){
+    var panel = document.getElementById('chatLobbyStickerPanel');
+    if(panel.style.display === 'block'){ panel.style.display = 'none'; return; }
+    panel.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:8px;">加载中...</div>';
+    panel.style.display = 'block';
+    fetch('/api/stickers').then(function(r){return r.json();}).then(function(d){
+        var html = '';
+        (d.stickers||[]).forEach(function(s){
+            html += '<img src="/static/stickers/'+escapeHtml(s.filename)+'" style="width:50px;height:50px;border-radius:8px;cursor:pointer;margin:2px;" onclick="sendChatLobbySticker(\''+escapeHtml(s.filename)+'\')">';
+        });
+        panel.innerHTML = html || '<div style="text-align:center;color:var(--text-muted);padding:8px;">暂无表情包</div>';
+    }).catch(function(){ panel.innerHTML = '<div style="text-align:center;color:var(--text-muted);">加载失败</div>'; });
+}
+function sendChatLobbySticker(filename){
+    if(!chatLobbyWs || chatLobbyWs.readyState !== WebSocket.OPEN) return;
+    var msgId = 'cl_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    chatLobbyWs.send(JSON.stringify({type:'sticker', filename:filename, msg_id:msgId, reply_to:chatLobbyReplyTo||''}));
+    document.getElementById('chatLobbyStickerPanel').style.display = 'none';
+    cancelChatReply();
+}
+function chatLobbyAtSearch(inp){ /* 保持原有逻辑 */ }
+function chatLobbySelectAt(nickname){ var inp = document.getElementById('chatLobbyInput'); inp.value = inp.value.replace(/@\S*$/, '@' + nickname + ' '); document.getElementById('chatLobbyAtPopup').style.display = 'none'; inp.focus(); }
+function showChatOnlineList(){ if(chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){ chatLobbyWs.send(JSON.stringify({type:'get_online'})); } }
+function chatLobbyRenderOnlineList(list){
+    var el = document.getElementById('chatOnlineList');
+    var html = '';
+    list.forEach(function(u){
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-light);">';
+        html += '<span style="font-size:0.85rem;">'+escapeHtml(u.nickname)+(u.is_admin?' <span style="color:var(--primary);font-size:0.7rem;">管理员</span>':'')+'</span>';
+        if(chatLobbyIsAdmin && u.user_id !== chatLobbyMyUserId){
+            html += '<button onclick="chatLobbyBanUser(\''+escapeHtml(u.user_id)+'\',\''+escapeHtml(u.nickname)+'\')" style="padding:2px 8px;border:1px solid var(--error);border-radius:4px;background:transparent;color:var(--error);font-size:0.7rem;cursor:pointer;">封禁</button>';
+        }
+        html += '</div>';
+    });
+    el.innerHTML = html || '<div style="text-align:center;color:var(--text-muted);padding:16px;">暂无在线用户</div>';
+    document.getElementById('chatOnlineModal').classList.add('visible');
+}
+function isMsgVisibleOnScreen(msgId){ var el = document.getElementById('clmsg_' + msgId); if(!el) return false; var rect = el.getBoundingClientRect(); return rect.top >= 0 && rect.bottom <= window.innerHeight; }
+function checkChatLobbyNotify(d){ if(d.content && d.content.indexOf('@' + chatLobbyMyNick) !== -1){ if(!isMsgVisibleOnScreen(d.msg_id)){ chatLobbyPendingAts.push({msg_id:d.msg_id, from:d.nickname, type:'at_mention'}); } } }
+function updateChatLobbyNotiBadge(){ var btn = document.getElementById('chatLobbyNotiBtn'); var count = chatLobbyPendingAts.length; if(count > 0){ btn.style.display = ''; btn.textContent = count + ' 条新消息 ▼'; } else { btn.style.display = 'none'; } }
+function chatLobbyJumpToMsg(msgId){ var el = document.getElementById('clmsg_' + msgId); if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.transition = 'background 0.3s'; el.style.background = 'rgba(157,191,60,0.3)'; setTimeout(function(){ el.style.background = ''; }, 1500); } else { showToast('消息不在当前列表中', 'info'); } }
+function chatLobbyJumpToNoti(){ if(!chatLobbyPendingAts.length) return; var noti = chatLobbyPendingAts.shift(); updateChatLobbyNotiBadge(); chatLobbyJumpToMsg(noti.msg_id); }
+function leaveChatLobby(){ if(chatLobbyWs){ chatLobbyWs.close(); chatLobbyWs = null; } chatLobbyPendingAts = []; updateChatLobbyNotiBadge(); showPage('homePage'); }
+
+/* 迷你聊天室 */
+let miniChatConnected = false;
+let miniChatUserScrolled = false;
+
+function openMiniChat(){
+    var panel = document.getElementById('miniChatPanel');
+    if(!panel) return;
+    // 设置用户信息（修复「请先加入」问题）
+    if(!chatLobbyMyUserId){
+        chatLobbyMyUserId = localStorage.getItem('turing_user_id') || '';
+        chatLobbyMyNick = localStorage.getItem('turing_nickname') || '';
+    }
+    panel.style.display = 'flex';
+    panel.classList.add('opening');
+    if(!miniChatConnected){ connectChatLobby(); miniChatConnected = true; }
+    if(chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){
+        chatLobbyWs.send(JSON.stringify({type:'get_history', limit:30}));
+    }
+    requestAnimationFrame(function(){ panel.classList.remove('opening'); });
+    miniChatUserScrolled = false;
+    scrollMiniChatToBottom();
+    setTimeout(function(){
+        var inp = document.getElementById('miniChatInput');
+        if(inp) inp.focus();
+    }, 300);
+}
+function closeMiniChat(){
+    var panel = document.getElementById('miniChatPanel');
+    if(!panel) return;
+    panel.classList.add('closing');
+    setTimeout(function(){
+        panel.style.display = 'none';
+        panel.classList.remove('closing');
+    }, 250);
+}
+function handleMiniChatKey(event){
+    if(event.key === 'Enter' && !event.shiftKey){ event.preventDefault(); sendMiniChatMsg(); }
+}
+function sendMiniChatMsg(){
+    if(chatLobbyMuted){ showToast('你已被禁言', 'error'); return; }
+    var inp = document.getElementById('miniChatInput');
+    if(!inp) return;
+    var text = inp.value.trim();
+    if(!text) return;
+    if(chatLobbyWs && chatLobbyWs.readyState === WebSocket.OPEN){
+        var msgId = 'cl_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+        chatLobbyWs.send(JSON.stringify({type:'chat', content:text, msg_id:msgId, reply_to:''}));
+    }
+    inp.value = '';
+    inp.focus();
+    miniChatUserScrolled = false;
+    scrollMiniChatToBottom();
+}
+function renderMiniChatMsg(d){
+    var el = document.getElementById('miniChatMessages');
+    if(!el) return;
+    var empty = el.querySelector('.mini-chat-empty');
+    if(empty) empty.remove();
+    var div = document.createElement('div');
+
+    if(d.type === 'system' || d.type === 'warning'){
+        div.className = 'mini-msg system';
+        var sysText = d.type === 'warning' ? ('管理员警告: ' + (d.message||'')) : (d.message||d.content||'');
+        div.innerHTML = '<span style="font-size:0.68rem;color:var(--text-muted);padding:2px 8px;background:rgba(128,128,128,0.1);border-radius:8px;">' + escapeHtml(sysText) + '</span>';
+        el.appendChild(div);
+        smartScrollMiniChat(el);
+        return;
+    }
+
+    var sender = escapeHtml(d.nickname||'?');
+    var userId = localStorage.getItem('turing_user_id')||'';
+    var isSelf = d.user_id === userId;
+    div.className = 'mini-msg ' + (isSelf?'self':'other');
+
+    if(d.msg_type === 'sticker'){
+        div.innerHTML = '<span class="mini-msg-sender">'+sender+'</span>'+
+            '<img class="mini-msg-sticker" src="/static/stickers/'+escapeHtml(d.content)+'" alt="sticker">';
+    } else {
+        var content = escapeHtml(d.content||'');
+        // 高亮 @提及
+        var myNick = localStorage.getItem('turing_nickname')||'';
+        if(myNick && content.indexOf('@'+myNick)!==-1){
+            content = content.replace(new RegExp('@'+myNick.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),
+                '<span style="background:rgba(251,188,5,0.3);color:var(--primary);border-radius:4px;padding:0 2px;">@'+myNick+'</span>');
+        }
+        div.innerHTML = '<span class="mini-msg-sender">'+sender+'</span>'+
+            '<div class="mini-msg-bubble">'+content+'</div>';
+    }
+    el.appendChild(div);
+    smartScrollMiniChat(el);
+    // 限制消息数量
+    var msgs = el.querySelectorAll('.mini-msg');
+    while(msgs.length > 100){ msgs[0].remove(); msgs = el.querySelectorAll('.mini-msg'); }
+}
+function smartScrollMiniChat(el){
+    if(miniChatUserScrolled){ showMiniScrollHint(el); return; }
+    scrollMiniChatToBottom();
+}
+function scrollMiniChatToBottom(){
+    var el = document.getElementById('miniChatMessages');
+    if(!el) return;
+    el.scrollTop = el.scrollHeight;
+    var hint = el.querySelector('.mini-scroll-hint');
+    if(hint) hint.remove();
+}
+function showMiniScrollHint(el){
+    if(el.querySelector('.mini-scroll-hint')) return;
+    var hint = document.createElement('div');
+    hint.className = 'mini-scroll-hint';
+    hint.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+    hint.title = '回到底部';
+    hint.onclick = function(){ scrollMiniChatToBottom(); miniChatUserScrolled = false; };
+    el.appendChild(hint);
+}
+// 监听消息滚动区域
+(function initMiniScrollWatcher(){
+    var observer = new MutationObserver(function(){
+        var el = document.getElementById('miniChatMessages');
+        if(el && !el._scrollBound){
+            el._scrollBound = true;
+            el.addEventListener('scroll', function(){
+                var atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+                miniChatUserScrolled = !atBottom;
+                if(atBottom){ var hint=el.querySelector('.mini-scroll-hint');if(hint)hint.remove(); }
+            });
+        }
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+})();
+
+
+/* 多人身份弹窗 */
+function showMultiRolePopup(identity, objective, warning, num){
+    var overlay = document.createElement('div');
+    overlay.id = 'multiRoleOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    var roleColor = identity==='假AI'?'#FF9800':'var(--primary)';
+    var roleEmoji = identity==='假AI'?'[假AI]':'[人类]';
+    overlay.innerHTML = '<div style="background:var(--surface);border-radius:16px;padding:32px;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
+        '<div style="font-size:2rem;font-weight:900;margin-bottom:8px;color:'+roleColor+'">'+roleEmoji+'</div>'+
+        '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px">你的编号: #'+num+'</div>'+
+        '<div style="font-size:1.4rem;font-weight:700;color:'+roleColor+';margin-bottom:16px">'+identity+'</div>'+
+        '<div style="font-size:0.95rem;color:var(--text-primary);margin-bottom:12px;line-height:1.5">目标: '+objective+'</div>'+
+        (warning?'<div style="font-size:0.8rem;color:#D93838;background:rgba(217,56,56,0.06);padding:8px 12px;border-radius:8px;margin-bottom:12px">'+warning+'</div>':'')+
+        '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:16px">其他玩家不知道你的身份</div>'+
+        '<button onclick="document.getElementById(\'multiRoleOverlay\').remove()" style="padding:10px 32px;border:none;border-radius:8px;background:'+roleColor+';color:'+(identity==='假AI'?'#fff':'var(--text-primary)')+';font-weight:600;font-size:0.9rem;cursor:pointer">开始游戏</button>'+
+        '</div>';
+    document.body.appendChild(overlay);
+}
+
+function adminForceMulti(){ const btn = document.getElementById('adminForceBtn'); if(!btn) return; btn.disabled = true; btn.textContent = '正在强制开始...'; ws.send(JSON.stringify({type:"multi_admin_force"})); setTimeout(() => { if(btn.disabled){ btn.disabled = false; btn.textContent = '跳过等待 (用AI补位)'; showToast('强制开始请求已发送，请等待服务器响应','info'); } }, 10000); }
+function setupAdminTrigger(){ const trigger = document.getElementById('adminTrigger'); if(!trigger) return; trigger.addEventListener('click', () => { adminClickCount++; if(adminClickTimer) clearTimeout(adminClickTimer); if(adminClickCount >= 4){ adminClickCount = 0; adminLogin(); } else { adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1500); } }); }
+function getFingerprint(){ try{ const parts=[navigator.userAgent||'',navigator.language||'',screen.width||'',screen.height||'',navigator.hardwareConcurrency||'']; return parts.join('|').slice(0,100); }catch(e){return '';} }
+function adminLogin(){ _saveLog('admin_login_attempt'); const pw = prompt('请输入管理员密码：'); if(!pw) return; ws.send(JSON.stringify({type:'admin_login', password:pw, user_id:localStorage.getItem('turing_user_id')||'', fingerprint:getFingerprint(), nickname:localStorage.getItem('turing_nickname')||''})); }
+function adminBan(){ if(!isAdmin){ showToast('无管理员权限','error'); return; } const reason = document.getElementById('adminBanReason').value.trim() || '管理员封禁'; const unit = document.getElementById('adminBanDur').value; const num = document.getElementById('adminBanNum').value || ''; const duration = unit === '永久' ? '永久' : (num + unit); if(!confirm('确认封禁对手？\n理由：'+reason+'\n时长：'+duration)) return; ws.send(JSON.stringify({type:'admin_ban', reason:reason, duration:duration})); _saveLog('admin_ban',{reason:reason,duration:duration}); }
+
+/* 观战功能 */
+let watchPanelOpen = false, currentWatchingRoom = null, currentWatchMode = 'all';
+function openWatchPanel(){ if(!isAdmin){ showToast('无管理员权限','error'); return; } watchPanelOpen = true; document.getElementById('watchPanel').classList.add('active'); showWatchSelectPage(); refreshWatchList(); _saveLog('watch_panel_opened'); }
+function closeWatchPanel(){ if(currentWatchingRoom){ ws.send(JSON.stringify({type:'watch_stop'})); currentWatchingRoom = null; } watchPanelOpen = false; document.getElementById('watchPanel').classList.remove('active'); }
+function showWatchSelectPage(){ document.getElementById('watchSelectPage').classList.remove('hidden'); document.getElementById('watchRoomPage').classList.add('hidden'); currentWatchingRoom = null; }
+function showWatchRoomPage(){ document.getElementById('watchSelectPage').classList.add('hidden'); document.getElementById('watchRoomPage').classList.remove('hidden'); }
+function stopWatching(){ if(currentWatchingRoom){ ws.send(JSON.stringify({type:'watch_stop'})); currentWatchingRoom = null; } document.getElementById('watchChatMessages').innerHTML = '<div class="watch-empty">正在加载聊天记录...</div>'; showWatchSelectPage(); refreshWatchList(); }
+function filterWatchList(val) {
+    // 简单的本地过滤客户端
+    const items = document.querySelectorAll('.watch-room-item');
+    const search = val.toLowerCase().trim();
+    items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = (text.includes(search)) ? 'flex' : 'none';
+    });
+}
+function switchWatchMode(mode, btn){
+    currentWatchMode = mode;
+    document.querySelectorAll('.watch-mode-tab').forEach(t => t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    refreshWatchList();
+}
+function refreshWatchList(){ if(!ws || ws.readyState !== WebSocket.OPEN) return; document.getElementById('watchRoomList').innerHTML = '<div class="watch-empty">加载中...</div>'; ws.send(JSON.stringify({type:'watch_list', mode: currentWatchMode})); }
+function renderWatchList(rooms){
+    const list = document.getElementById('watchRoomList');
+    if(!rooms.length){ list.innerHTML = '<div class="watch-empty">当前没有在线对局</div>'; return; }
+    list.innerHTML = '';
+    rooms.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'watch-room-card' + (r.room_id === currentWatchingRoom ? ' selected' : '');
+        
+        let statusStr = r.status || '聊天中'; 
+        let statusClass = statusStr === '判定中' ? 'judging' : 'chatting';
+        
+        let p1Name = '???', p2Name = '???', p1Id='', p2Id='';
+        if(r.mode === 'normal' && r.player1 && r.player2){
+            p1Name = r.player1.name || '???';
+            p2Name = r.player2.name || '???';
+            p1Id = r.player1.id || '';
+            p2Id = r.player2.id || '';
+        } else if(r.mode === 'multi' && r.players){
+            let names = r.players.map(function(p){return p.name;}).join(', ');
+            p1Name = '多人游戏';
+            p2Name = names;
+            p1Id = '';
+            p2Id = '';
+            statusStr = r.round ? '第'+r.round+'轮' : '游戏中';
+        }
+
+        item.innerHTML = '<div class="room-info-wrap">'+
+            '<div class="room-players">'+escapeHtml(p1Name)+' vs '+escapeHtml(p2Name)+'</div>'+
+            ((r.mode !== 'multi') ? '<div class="room-id">'+escapeHtml(p1Id).slice(0,10)+'... | '+escapeHtml(p2Id).slice(0,10)+'...</div>' : '')+
+            '<div class="room-status-tag-wrap">'+
+                '<span class="status-tag '+statusClass+'">'+statusStr+'</span>'+
+                (r.mode === 'multi' ? '<span class="room-extra-info">'+(r.players ? r.players.length+'人' : '')+'</span>' : '')+
+            '</div>'+
+        '</div>'+
+        '<button class="watch-btn-enter" onclick="event.stopPropagation(); startWatching(\''+r.room_id+'\')">进入观战</button>';
+        list.appendChild(item);
+    });
+}
+function startWatching(roomId){
+    if(!ws || ws.readyState !== WebSocket.OPEN) return;
+    if(currentWatchingRoom === roomId) return;
+    if(currentWatchingRoom){ ws.send(JSON.stringify({type:'watch_stop'})); }
+    currentWatchingRoom = roomId;
+    document.getElementById('watchChatMessages').innerHTML = '<div class="watch-empty">正在加载聊天记录...</div>';
+    showWatchRoomPage();
+    ws.send(JSON.stringify({type:'watch_start', room_id: roomId}));
+}
+function onWatchStarted(data){
+    currentWatchingRoom = data.room_id;
+    // 更新观战房间标题
+    let p1Name = data.player1 ? data.player1.name : '???';
+    let p2Name = data.player2 ? data.player2.name : '???';
+    if(data.mode === 'multi' && data.players){
+        let names = data.players.map(function(p){return p.name;}).join(', ');
+        p2Name = names;
+        p1Name = data.players.length + '人游戏';
+    }
+    document.getElementById('watchRoomTitle').textContent = '观战: ' + p1Name + ' vs ' + p2Name;
+    showWatchRoomPage();
+    
+    const tagsContainer = document.getElementById('watchRoomPlayers');
+    tagsContainer.innerHTML = '';
+    
+    // 渲染玩家标签
+    let players = [];
+    if(data.mode === 'normal') {
+        players = [data.player1, data.player2];
+    } else if (data.mode === 'multi') {
+        players = data.players || [];
+    }
+    players.forEach(p => {
+        if(!p) return;
+        const tag = document.createElement('div');
+        tag.className = 'player-tag';
+        const isAi = p.is_ai ? 'AI' : '人类';
+        tag.innerHTML = '<span class="tag-type">'+escapeHtml(p.name)+'</span> 是 <span style="font-weight:600;color:'+(p.is_ai?'var(--text-muted)':'var(--primary)')+'">'+isAi+'</span>'+
+            (isAdmin ? '<button class="btn-ban" onclick="watchBanUser(\''+escapeHtml(p.name)+'\', \''+escapeHtml(p.user_id||p.id||'')+'\')">封禁</button>' : '');
+        tagsContainer.appendChild(tag);
+    });
+
+    document.getElementById('watchChatMessages').innerHTML = data.history && data.history.length ? '' : '<div class="watch-empty">暂无聊天记录</div>';
+    if(data.history) data.history.forEach(msg => { appendWatchChatMessage(msg.sender, msg.content, msg.is_ai, false); });
+    document.getElementById('watchChatMessages').scrollTop = document.getElementById('watchChatMessages').scrollHeight;
+    refreshWatchList();
+}
+function onWatchChat(data){ if(currentWatchingRoom !== data.room_id) return; appendWatchChatMessage(data.sender, data.content, data.is_ai, true); }
+function onWatchSticker(data){ if(currentWatchingRoom !== data.room_id) return; 
+    var c = document.getElementById('watchChatMessages'); 
+    var empty = c.querySelector('.watch-empty'); if(empty) empty.remove();
+    var m = document.createElement('div'); 
+    m.className = 'watch-chat-msg wm-opponent'; 
+    m.innerHTML = '<div class="wm-sender">'+escHtml(data.sender)+(data.is_ai?' [AI]':'')+'</div><img class="wm-sticker" src="/static/stickers/'+escHtml(data.filename)+'" alt="sticker">'; 
+    c.appendChild(m); c.scrollTop = c.scrollHeight; 
+}
+function onWatchSystemMsg(data){ if(currentWatchingRoom !== data.room_id) return; 
+    var c = document.getElementById('watchChatMessages'); 
+    var empty = c.querySelector('.watch-empty'); if(empty) empty.remove();
+    var m = document.createElement('div'); 
+    m.className = 'watch-chat-msg wm-system'; 
+    m.innerHTML = '<div class="wm-bubble">'+escHtml(data.message)+'</div>'; 
+    c.appendChild(m); c.scrollTop = c.scrollHeight; 
+}
+function onWatchWarnMsg(data){ if(currentWatchingRoom !== data.room_id) return; 
+    var c = document.getElementById('watchChatMessages'); 
+    var empty = c.querySelector('.watch-empty'); if(empty) empty.remove();
+    var m = document.createElement('div'); 
+    m.className = 'watch-chat-msg wm-system'; 
+    m.innerHTML = '<div style="color:var(--error);font-weight:600;background:rgba(217,56,56,0.1);padding:6px 12px;border-radius:6px;display:inline-block;">⚠️ '+escHtml(data.message)+'</div>'; 
+    c.appendChild(m); c.scrollTop = c.scrollHeight; 
+}
+function appendWatchChatMessage(sender, content, isAi, animate){
+    const container = document.getElementById('watchChatMessages');
+    const empty = container.querySelector('.watch-empty'); if(empty) empty.remove();
+    const msg = document.createElement('div'); 
+    // 观战模式下所有的聊天都是对方的消息（显示在左侧），自己无法发送聊天
+    msg.className = 'watch-chat-msg wm-opponent';
+    msg.innerHTML = '<div class="wm-sender">'+escHtml(sender)+(isAi?' [AI]':'')+'</div><div class="wm-bubble">'+escHtml(content)+'</div>';
+    if(animate) msg.style.animation = 'messageIn 0.25s ease-out';
+    container.appendChild(msg); container.scrollTop = container.scrollHeight;
+}
+function watchBanUser(name, targetId){ if(!isAdmin) return; var reason = prompt('封禁 '+name+' 理由：','违规行为'); if(!reason) return; var dur = prompt('封禁时长（如 1小时, 1天, 永久）：','1小时'); if(!dur) return; ws.send(JSON.stringify({type:'watch_ban', room_id:currentWatchingRoom, target_id:targetId||'', target_name:name, reason:reason, duration:dur})); }
+function sendWatchWarn(){ var input = document.getElementById('watchWarnInput'); var msg = input.value.trim(); if(!msg||!currentWatchingRoom) return; ws.send(JSON.stringify({type:'watch_warn', room_id:currentWatchingRoom, message:msg})); input.value = ''; }
+function onWatchStopped(){ currentWatchingRoom = null; document.getElementById('watchChatMessages').innerHTML = '<div class="watch-empty">正在加载聊天记录...</div>'; showWatchSelectPage(); refreshWatchList(); }
+function onWatchEnded(data){ if(currentWatchingRoom === data.room_id){ currentWatchingRoom = null; document.getElementById('watchChatMessages').innerHTML = '<div class="watch-empty">对局已结束</div>'; showToast('对局已结束','info'); setTimeout(function(){ showWatchSelectPage(); refreshWatchList(); }, 1500); } else { refreshWatchList(); } }
+
+function showPage(pageId){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); }
+function goHome(){ roomId=null;gameEnded=false;judgmentRequired=false;canJudge=false;stopMsgTimer();stopJudgmentTimer();stopTotalTimer(); document.getElementById('judgeBtn').disabled=true; document.getElementById('judgeBtn').className='judge-btn'; document.getElementById('judgeBtn').textContent='做出判断'; document.getElementById('chatMessages').innerHTML=''; if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'return_home'})); showPage('homePage'); }
+let toastTimer=null;
+function showToast(message,type){ type=type||'info'; let el=document.getElementById('toastEl'); el.textContent=message; el.className='toast'; if(type==='error')el.classList.add('error'); if(type==='success')el.classList.add('success'); void el.offsetWidth; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>{el.classList.remove('show');},3000); }
+function openReportModal(){ document.getElementById('reportPlayerField').style.display='none'; document.getElementById('reportReason').value=''; document.getElementById('reportModal').classList.add('visible'); }
+function openReportModalMulti(){ document.getElementById('reportPlayerField').style.display='block'; document.getElementById('reportReason').value=''; var sel=document.getElementById('reportTarget'); sel.innerHTML='<option value="">请选择</option>'; if(multiPlayerNames){ for(var k in multiPlayerNames){ if(parseInt(k)!==multiMyNum){ var opt=document.createElement('option'); opt.value=k; opt.textContent='#'+k+' '+multiPlayerNames[k]; sel.appendChild(opt); } } } document.getElementById('reportModal').classList.add('visible'); }
+function closeReportModal(){ document.getElementById('reportModal').classList.remove('visible'); }
+function submitReport(){ const reason=document.getElementById('reportReason').value.trim(); if(!reason){showToast('请填写举报理由','error');return;} if(reason.length<4){showToast('举报理由至少 4 个字','error');return;} var target=document.getElementById('reportTarget').value||''; if(document.getElementById('reportPlayerField').style.display!=='none'&&!target){showToast('请选择举报谁','error');return;} closeReportModal(); ws.send(JSON.stringify({type:'submit_report',reason,target_num:target||null})); }
+function closeNotification(){ document.getElementById('notificationOverlay').classList.remove('visible'); }
+function toggleRecoveryInput(){ var row = document.getElementById('recoveryLoginRow'); var link = document.getElementById('recoveryToggleLink'); if(row.style.display === 'flex'){ row.style.display = 'none'; link.textContent = '使用恢复码登录'; } else { row.style.display = 'flex'; link.textContent = '收起'; document.getElementById('recoveryCodeInput').focus(); } }
+function submitRecoveryCode(){ var code = document.getElementById('recoveryCodeInput').value.trim().toUpperCase(); if(!code){ showToast('请输入恢复码','error'); return; } ws.send(JSON.stringify({type:'recovery_login', code: code})); }
+function copyRecoveryCode(){ var code = document.getElementById('recoveryCodeText').textContent; if(!code || code === '------'){ showToast('暂无恢复码','error'); return; } navigator.clipboard.writeText(code).then(function(){ var hint = document.getElementById('recoveryCopyHint'); hint.textContent = '已复制!'; showToast('恢复码已复制: ' + code,'success'); setTimeout(function(){ hint.textContent = '点击复制'; }, 2000); }).catch(function(){ showToast('复制失败，请手动复制: ' + code,'error'); }); }
+function showChangeNickname(){ var panel = document.getElementById('changeNickPanel'); var link = document.getElementById('changeNickLink'); if(panel.style.display === 'block'){ panel.style.display = 'none'; link.textContent = '修改昵称'; } else { panel.style.display = 'block'; link.textContent = '收起'; var input = document.getElementById('changeNickInput'); input.value = _getNickname(); input.focus(); input.select(); } }
+function submitChangeNickname(){ var newNick = document.getElementById('changeNickInput').value.trim(); if(!newNick){ showToast('请输入新昵称','error'); return; } if(newNick.length > 20){ showToast('昵称最多20个字符','error'); return; } var userId = localStorage.getItem('turing_user_id') || ''; if(!userId){ showToast('请先设置昵称','error'); return; } var btn = document.getElementById('changeNickBtn'); btn.disabled = true; btn.textContent = '修改中...'; fetch('/api/change_nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId, old_nickname:_getNickname(), new_nickname:newNick})}).then(function(r){return r.json();}).then(function(data){ btn.disabled = false; btn.textContent = '确认'; if(data.status === 'ok'){ localStorage.setItem('turing_nickname', newNick); document.getElementById('identityTitle').textContent = newNick; document.getElementById('changeNickPanel').style.display = 'none'; document.getElementById('changeNickLink').textContent = '修改昵称'; showToast(data.message || '昵称修改成功','success'); } else { showToast(data.message || '修改失败','error'); } }).catch(function(e){ btn.disabled = false; btn.textContent = '确认'; showToast('网络错误，请重试','error'); }); }
+window.addEventListener('storage', function(e){ if(e.key === 'turing_user_id' && e.newValue){ document.getElementById('myUserIdLabel').textContent = e.newValue.slice(0,14); } if(e.key === 'turing_nickname' && e.newValue){ document.getElementById('identityTitle').textContent = e.newValue; document.getElementById('nicknameInput').value = e.newValue; } });
+async function fetchPendingWarnings(){ try{ const uid=localStorage.getItem('turing_user_id')||''; if(!uid)return; const r=await fetch('/api/user/pending_warnings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid})}); const d=await r.json(); if(d.warnings&&d.warnings.length>0){ var msgs=d.warnings.map(w=>w.message).join('\n'); showToast('你有 '+d.warnings.length+' 条管理员消息:\n'+msgs,'error'); } }catch(e){} }
+function showAnnounce(text){ var el=document.getElementById('announceBanner'); var tx=document.getElementById('announceText'); if(text){ tx.textContent=text; el.style.display='block'; }else{ el.style.display='none'; tx.textContent=''; } }
+function closeAnnounce(){ document.getElementById('announceBanner').style.display='none'; }
+async function checkMaintenance(){ try{ var resp=await fetch('/api/maintenance'); var data=await resp.json(); if(data && data.enabled){ showMaintenancePage(data.message || '系统维护中，请稍后再试'); } }catch(e){} }
+function showMaintenancePage(msg){ document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0f;color:#fff;font-family:Inter,-apple-system,sans-serif;text-align:center;padding:2rem"><div><div style="font-size:4rem;margin-bottom:16px">[维护]</div><h1 style="font-size:1.8rem;font-weight:700;margin-bottom:12px">系统维护中</h1><p style="color:#888;font-size:1rem;max-width:400px">'+msg+'</p><p style="color:#555;font-size:0.8rem;margin-top:24px">请稍后再试，感谢你的理解</p></div></div>'; }
+async function fetchAnnounce(){ try{ var resp=await fetch('/api/announce'); var data=await resp.json(); if(data&&data.content) showAnnounce(data.content); }catch(e){} }
+function escapeHtml(text){ const div=document.createElement('div'); div.textContent=text; return div.innerHTML; }
+var escHtml=escapeHtml;
+var _logs=JSON.parse(localStorage.getItem('turing_logs')||'[]');
+function _saveLog(action,detail){ var entry={t:new Date().toISOString(),action:action,detail:detail||null}; _logs.push(entry); if(_logs.length>2000) _logs=_logs.slice(-2000); try{localStorage.setItem('turing_logs',JSON.stringify(_logs));}catch(e){} var list=document.getElementById('logList'); if(list&&document.getElementById('logPanel').style.display!=='none'){ var li=document.createElement('div'); li.className='log-item'; li.textContent='['+entry.t.slice(11,19)+'] '+entry.action+(entry.detail?' — '+JSON.stringify(entry.detail):''); list.appendChild(li); list.scrollTop=list.scrollHeight; } }
+function openLogPanel(){ var p=document.getElementById('logPanel'); p.style.display='flex'; var list=document.getElementById('logList'); list.innerHTML=''; _logs.forEach(function(e){ var li=document.createElement('div'); li.className='log-item'; li.textContent='['+e.t.slice(11,19)+'] '+e.action+(e.detail?' — '+JSON.stringify(e.detail):''); list.appendChild(li); }); list.scrollTop=list.scrollHeight; }
+function closeLogPanel(){ document.getElementById('logPanel').style.display='none'; }
+function exportLogs(){ var blob=new Blob([JSON.stringify(_logs,null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='turing_logs_'+Date.now()+'.json'; a.click(); }
+function clearLogs(){ _logs=[]; localStorage.removeItem('turing_logs'); document.getElementById('logList').innerHTML=''; showToast('日志已清空','success'); }
+document.addEventListener('DOMContentLoaded',function(){ var logBtn=document.getElementById('logBtn'); if(logBtn) logBtn.addEventListener('click',function(){ _saveLog('open_log_panel'); openLogPanel(); }); });
+function _patchWsLog(){ if(!ws) return; var origSend=ws.send.bind(ws); ws.send=function(data){ try{ var d=JSON.parse(data); _saveLog('ws_send',{type:d.type}); }catch(e){} return origSend(data); }; var origOnMsg=ws.onmessage; ws.onmessage=function(e){ try{ var d=JSON.parse(e.data); if(d.type!=='pong'&&d.type!=='chat_message'&&d.type!=='chat_sticker'&&d.type!=='multi_chat'&&d.type!=='multi_sticker'){ _saveLog('ws_recv',{type:d.type}); } }catch(ex){} if(origOnMsg) origOnMsg(e); }; }
+(function(){
+    if(!localStorage.getItem('turing_user_id')){ const uid='u_'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem('turing_user_id',uid); }
+    document.getElementById('myUserIdLabel').textContent=localStorage.getItem('turing_user_id').slice(0,14);
+    const savedName=localStorage.getItem('turing_nickname');
+    if(savedName){ document.getElementById('nicknameInput').value=savedName; document.getElementById('identityTitle').textContent=savedName; document.getElementById('homeCharCount').textContent=savedName.length; document.getElementById('homeProgressBar').style.width=(savedName.length/20*100)+'%'; document.getElementById('changeNickRow').style.display='flex'; } else { document.getElementById('inputSection').style.display=''; }
+    setupAdminTrigger();
+    fetchAnnounce();
+    fetchPendingWarnings();
+    checkMaintenance();
+    if(savedName){
+        var checkWs = setInterval(function(){ if(ws && ws.readyState === WebSocket.OPEN){ clearInterval(checkWs); _requestRecoveryCode(); } }, 500);
+        setTimeout(function(){ clearInterval(checkWs); }, 10000);
+    }
+})();
+connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "ai_enabled": false,
+  "provider": "openai",
+  "base_url": "https://api.openai.com/v1",
+  "api_key": "your-api-key-here",
+  "model": "deepseek-chat",
+  "temperature": 0.7,
+  "max_tokens": 200,
+  "system_prompt": "你正在参与一个『图灵测试』互动游戏，你扮演一名普通的人类网友，和另一个陌生人通过文字聊天。你的任务是不被对方识破自己不是 AI。",
+  "expressor_enabled": true,
+  "mirror_user": true,
+  "ai_probability": 0.35,
+  "judgment_timeout": 60,
+  "thinking_delay_min": 1.0,
+  "thinking_delay_max": 3.5,
+  "maintenance_mode": false,
+  "maintenance_message": "系统维护中，请稍后再试",
+  "admin_password": "your-admin-password-here"
+}

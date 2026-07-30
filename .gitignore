@@ -1,0 +1,45 @@
+# 环境 / 依赖
+venv/
+.env
+*.env
+
+# API 密钥（敏感信息）
+AIkey.txt
+
+# 配置文件（含 API 密钥、管理员密码等敏感信息）
+config.json
+
+# 日志文件（含操作记录和房间信息）
+*.log
+turing_logs_*.json
+
+# 数据库文件（含游戏数据）
+*.db
+*.db-shm
+*.db-wal
+
+# Python 字节码缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / 编辑器
+.codebuddy/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时 / 测试文件
+snap1.yaml
+test_models.py
+chongqi
+
+# 表情包图片
+static/stickers/
