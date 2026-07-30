@@ -1714,7 +1714,7 @@ async def ws_chat_lobby(websocket: WebSocket):
             print(f"  [CHAT大厅] {user_info['nickname']} 离开 ({len(online)}人在线)")
 
 
-def run(host: str = "0.0.0.0", port: int = 1234):
+def run(host: str = "", port: int = 0):
     import uvicorn
     from app.ai.llm import _close_client, _refresh_key_cycle
 
@@ -1897,6 +1897,8 @@ def run(host: str = "0.0.0.0", port: int = 1234):
 
     # 启动 uvicorn
     # 注意：如需开发模式热重载，设置环境变量 TURING_RELOAD=1
+    host = host or AI_CONFIG.get("host", "0.0.0.0")
+    port = port or AI_CONFIG.get("port", 1234)
     use_reload = os.environ.get("TURING_RELOAD", "0") == "1"
     config = uvicorn.Config(
         "app.main:app",
