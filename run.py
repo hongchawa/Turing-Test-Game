@@ -33,7 +33,20 @@ if sys.platform == "win32":
 
 VENV = os.path.join(HERE, "venv")
 MIRROR = "https://pypi.tuna.tsinghua.edu.cn/simple"
-PORT = 1234
+
+# 从 config.json 读取端口
+def _get_port() -> int:
+    try:
+        import json as _json
+        cfg_path = os.path.join(HERE, "config.json")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, "r") as f:
+                return _json.load(f).get("port", 1234)
+    except Exception:
+        pass
+    return 1234
+
+PORT = _get_port()
 
 
 def _venv_python() -> str:

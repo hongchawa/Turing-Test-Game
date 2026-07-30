@@ -38,6 +38,9 @@ DEFAULT_CONFIG = {
     "judgment_timeout": 60,
     "thinking_delay_min": 1.0,
     "thinking_delay_max": 3.5,
+    # ---- 服务设置 ----
+    "host": "0.0.0.0",
+    "port": 1234,
     # ---- 维护模式 ----
     "maintenance_mode": False,
     "maintenance_message": "系统维护中，请稍后再试",
